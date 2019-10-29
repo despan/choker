@@ -1,9 +1,25 @@
-# suffocative
+<img src="logo.png" align="right" height="100px"/>
+<img align="right" width="0" height="100px" hspace="10"/>
+
+# suffocative :construction:
 
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)
 
-:construction: throttle on limited rate
+> throttle on limited rate
+
+### Installation
+
+```sh
+# clone repo
+git clone https://github.com/despan/suffocative
+
+#
+cd suffocative
+
+# install dependencies
+npm install
+```
 
 ### Test
 
