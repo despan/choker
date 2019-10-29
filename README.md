@@ -5,6 +5,16 @@
 
 :construction: throttle on limited rate
 
+### Test
+
+```sh
+# run quick tests
+npm run test
+
+# test watching file changes
+npm run test:watch
+```
+
 ### Contributing
 
 Check [Contributing Guide](/CONTRIBUTING.md).

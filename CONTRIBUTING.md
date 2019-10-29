@@ -40,3 +40,6 @@ place to reference GitHub issues that this commit _Closes_.
 Follow [_JavaScript Standard Style_](https://standardjs.com/). Linter should run
 automatically on commit.
 
+**Tests**
+
+> The best issue report is a failing test proving it.
