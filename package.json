@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/despan/suffocative.git"
+  },
+  "author": "Mushegh Antaranyan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/despan/suffocative/issues"
+  },
+  "homepage": "https://github.com/despan/suffocative#readme"
+}
