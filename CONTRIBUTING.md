@@ -34,3 +34,9 @@ details in body.
 
 The footer should contain any information about **Breaking Changes** and is also the 
 place to reference GitHub issues that this commit _Closes_.
+
+**Code Style**
+
+Follow [_JavaScript Standard Style_](https://standardjs.com/). Linter should run
+automatically on commit.
+
