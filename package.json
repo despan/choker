@@ -36,6 +36,7 @@
   "dependencies": {
     "delay": "^4.3.0",
     "got": "^9.6.0",
-    "ramda": "^0.26.1"
+    "ramda": "^0.26.1",
+    "random-normal": "^1.0.0"
   }
 }

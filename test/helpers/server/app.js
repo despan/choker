@@ -1,5 +1,8 @@
 const Koa = require('koa')
 
+const random = require('random-normal')
+const delay = require('delay')
+
 const rateLimiter = require('./rate-limiter')
 
 /**
@@ -8,7 +11,12 @@ const rateLimiter = require('./rate-limiter')
  * @returns {Function}
  */
 
-function resolve (ctx, next) {
+async function resolve (ctx, next) {
+  // emulate computation load
+  const systemLoad = random({ mean: 100, dev: 10 })
+  await delay(systemLoad)
+
+  // respond
   ctx.status = 204
   return next()
 }

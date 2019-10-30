@@ -1,12 +1,21 @@
 const got = require('got')
 
+const delay = require('delay')
+
+const random = require('random-normal')
+
 /**
  * Send a dummy request
  *
  * @returns {Promise}
  */
 
-const send = (baseUrl, i) => {
+const send = async (baseUrl, i) => {
+  // emulate latency
+  const networkTime = random({ mean: 250, dev: 50 })
+  await delay(networkTime)
+
+  // actual request code
   const url = `${baseUrl}/${i}`
   return got(url)
 }
