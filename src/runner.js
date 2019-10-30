@@ -1,28 +1,8 @@
 const R = require('ramda')
-const got = require('got')
 
-/*
- * Helpers
- */
+const delay = require('delay')
 
-const delay = t => {
-  const wait = resolve => setTimeout(resolve, t)
-  return new Promise(wait)
-}
-
-/**
- * Send multiple dummy requests
- *
- * @param {string} url
- * @param {Array} arr
- *
- * @returns {Promise}
- */
-
-const sendMulti = (url, arr) => {
-  const ps = arr.map(() => got(url))
-  return Promise.all(ps)
-}
+const { sendMulti } = require('./service')
 
 /**
  * Runner
@@ -51,7 +31,7 @@ function runner (opts, source) {
 
     return Promise
       .all([sending, waiting])
-      .then(runNextBatch)
+      .then(runNextBatch) // recursion
   }
 
   return runNextBatch()

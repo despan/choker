@@ -1,15 +1,22 @@
 import test from 'ava'
 
-import getPort from 'get-port'
 import got from 'got'
 
-import createServer from '../src/server'
+import R from 'ramda'
+
+import { createServer } from './helpers/server'
 
 /*
  * Settings
  */
 
-const LIMIT = 5
+const LIMIT = 20
+
+/*
+ * Helpers
+ */
+
+const moreThan = x => x * 3
 
 /*
  * Hooks
@@ -17,27 +24,13 @@ const LIMIT = 5
 
 // setup
 test.beforeEach(async t => {
-  const app = createServer(LIMIT)
-
-  // acquire an available port
-  const port = await getPort()
-
-  // run the server
-  const server = await new Promise(resolve => {
-    const server = app.listen(port, () => resolve(server))
-  })
-
   // supply for later usage
-  t.context = {
-    server,
-    url: `http://localhost:${port}`
-  }
+  t.context = await createServer({ limit: LIMIT })
 })
 
 // tear down
 test.afterEach(async t => {
-  const { server } = t.context
-  server.close()
+  t.context.server.close()
 })
 
 /*
@@ -55,19 +48,17 @@ test.serial('single request', async t => {
 test.serial('rate limiter', async t => {
   const { url } = t.context
 
-  const exceed = () => {
+  const send = x => got(`${url}/${x}`)
+
+  const run = n => {
     // deliberately run more
-    const length = LIMIT + 10
-
+    const numbers = R.range(1, n)
     // make parallel requests
-    const ps = Array
-      .from({ length })
-      .map(() => got(url))
-
-    return Promise.all(ps)
+    return Promise.all(numbers.map(send))
   }
 
-  const err = await t.throwsAsync(exceed, got.HTTPError)
+  await t.notThrowsAsync(run(LIMIT), 'below limit')
 
-  t.is(err.statusCode, 429)
+  await t.throwsAsync(run(moreThan(LIMIT)), got.HTTPError, 'above limit')
+    .then(err => t.is(err.statusCode, 429, 'rate error'))
 })
