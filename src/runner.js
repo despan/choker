@@ -1,6 +1,5 @@
+const R = require('ramda')
 const got = require('got')
-
-const G = require('./source')
 
 /*
  * Helpers
@@ -31,7 +30,7 @@ const sendMulti = (url, arr) => {
  * @param {Object} opts
  * @param {number} opts.limit
  * @param {string} opts.url
- * @param {Iterable} source
+ * @param {Array} source
  *
  * @return {Promise}
  */
@@ -39,10 +38,10 @@ const sendMulti = (url, arr) => {
 function runner (opts, source) {
   const { limit, url } = opts
 
-  const batches = G.batch(limit, source)
+  const batches = R.splitEvery(limit, source)
 
   const runNextBatch = () => {
-    const arr = batches.next().value
+    const arr = batches.pop()
 
     if (!arr) return Promise.resolve()
 

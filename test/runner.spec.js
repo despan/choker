@@ -2,10 +2,11 @@ import test from 'ava'
 
 import getPort from 'get-port'
 
+import R from 'ramda'
+
 import { HTTPError } from 'got'
 
 import createServer from '../src/server'
-import G from '../src/source'
 
 import runner from '../src/runner'
 
@@ -51,8 +52,8 @@ test.afterEach(async t => {
 test.serial('limits', async t => {
   const { url } = t.context
 
-  const upto = n => G.take(n, G.numbers())
-  const run = limit => runner({ url, limit }, upto(40))
+  const rangeTo = R.range(1)
+  const run = limit => runner({ url, limit }, rangeTo(40))
 
   await t.notThrowsAsync(() => run(LIMIT), 'below limit')
   await t.throwsAsync(() => run(LIMIT + 10), HTTPError, 'above limit')
