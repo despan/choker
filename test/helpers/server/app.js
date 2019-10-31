@@ -63,6 +63,7 @@ function routes (opts) {
   })
 
   router
+    .use(latency())
     .use('/hit/:key', (ctx, next) => {
       if (!hasCapacity()) {
         ctx.status = 429
@@ -79,7 +80,6 @@ function routes (opts) {
 
       return next()
     })
-    .use(latency())
     .get('/hit/:key', (ctx, next) => {
       ctx.status = 204
     })
@@ -97,6 +97,11 @@ function routes (opts) {
 
 function factory (params = {}) {
   const app = new Koa()
+
+  app.use((ctx, next) => {
+    return next()
+      .catch(console.log)
+  })
 
   app.use(routes(params))
 

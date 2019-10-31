@@ -23,14 +23,14 @@ const sendMulti = (baseUrl, numbers) => {
  *
  * @param {Object} opts
  * @param {number} opts.limit
- * @param {string} opts.url
+ * @param {string} opts.baseUrl
  * @param {Array} source
  *
  * @return {Promise}
  */
 
 async function runner (opts, source) {
-  const { limit, url } = opts
+  const { baseUrl, limit } = opts
 
   const batches = R.splitEvery(limit, source)
   const results = []
@@ -40,11 +40,9 @@ async function runner (opts, source) {
   for (let i = 0; i < batches.length; i++) {
     const batch = batches[i]
 
-    console.log(batch)
-    console.log(Date.now())
-
-    const sending = sendMulti(url, batch).then(add)
     const waiting = delay(1000)
+    const sending = sendMulti(baseUrl, batch)
+      .then(add)
 
     await Promise.all([sending, waiting])
   }

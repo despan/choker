@@ -1,10 +1,22 @@
 const R = require('ramda')
 
-const got = require('got')
+const fetch = require('node-fetch')
+const createError = require('http-errors')
 
 const delay = require('delay')
 
 const random = require('random-normal')
+
+/**
+ *
+ */
+
+const recoverFetch = res => {
+  if (res.ok) return res
+
+  const err = createError(res.status)
+  return Promise.reject(err)
+}
 
 /**
  * Send a dummy request
@@ -14,13 +26,14 @@ const random = require('random-normal')
 
 const send = async (baseUrl, key) => {
   // emulate latency
-  const networkTime = random({ mean: 250, dev: 50 })
+  const networkTime = random({ mean: 200, dev: 40 })
   await delay(networkTime)
 
   // actual request code
-  const url = `${baseUrl}/${key}`
+  const url = `${baseUrl}/hit/${key}`
 
-  return got(url)
+  return fetch(url)
+    .then(recoverFetch)
     .then(() => key)
 }
 
