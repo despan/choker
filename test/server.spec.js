@@ -1,6 +1,7 @@
 import test from 'ava'
 
-import got from 'got'
+import fetch from 'node-fetch'
+import createError from 'http-errors'
 
 import R from 'ramda'
 
@@ -11,12 +12,30 @@ import { createServer } from './helpers/server'
  */
 
 const LIMIT = 20
+const INTERVAL = 100
 
 /*
  * Helpers
  */
 
-const moreThan = x => x * 3
+const parseFetch = res => {
+  if (res.ok) return res
+
+  const err = createError(res.status)
+  return Promise.reject(err)
+}
+
+const sendHit = (baseUrl, key) => {
+  const url = `${baseUrl}/hit/${key}`
+  return fetch(url).then(parseFetch).then(() => key)
+}
+
+const sendMultiTo = (baseUrl, limit) => {
+  const send = key => sendHit(baseUrl, key)
+  const numbers = R.range(1, limit)
+  // make parallel requests
+  return Promise.all(numbers.map(send))
+}
 
 /*
  * Hooks
@@ -25,7 +44,10 @@ const moreThan = x => x * 3
 // setup
 test.beforeEach(async t => {
   // supply for later usage
-  t.context = await createServer({ limit: LIMIT })
+  t.context = await createServer({
+    limit: LIMIT,
+    interval: INTERVAL
+  })
 })
 
 // tear down
@@ -37,28 +59,49 @@ test.afterEach(async t => {
  * Tests
  */
 
-test.serial('single request', async t => {
-  const { url } = t.context
+test.serial('stats on requests', async t => {
+  const baseUrl = t.context.url
 
-  const { statusCode } = await got(url)
+  const limit = 9
 
-  t.is(statusCode, 204)
+  const urlHistory = `${baseUrl}/history`
+
+  await fetch(urlHistory)
+    .then(res => res.json())
+    .then(body => {
+      t.deepEqual(body, [], 'ok initial stats')
+    })
+
+  // activity
+  await sendMultiTo(baseUrl, limit)
+
+  await fetch(urlHistory)
+    .then(res => res.json())
+    .then(R.pluck('key'))
+    .then(stats => {
+      const expected = R.range(1, limit).map(String)
+      t.deepEqual(stats.sort(), expected, 'ok final stats')
+    })
 })
 
 test.serial('rate limiter', async t => {
-  const { url } = t.context
+  const baseUrl = t.context.url
 
-  const send = x => got(`${url}/${x}`)
+  const urlFor = key => `${baseUrl}/hit/${key}`
 
-  const run = n => {
-    // deliberately run more
-    const numbers = R.range(1, n)
-    // make parallel requests
-    return Promise.all(numbers.map(send))
+  const run = limit => async () => {
+    const ps = []
+
+    while (limit--) {
+      const p = fetch(urlFor(limit))
+        .then(parseFetch)
+      ps.push(p)
+    }
+
+    return Promise.all(ps)
   }
 
-  await t.notThrowsAsync(run(LIMIT), 'below limit')
+  await t.notThrowsAsync(run(LIMIT), 'limit')
 
-  await t.throwsAsync(run(moreThan(LIMIT)), got.HTTPError, 'above limit')
-    .then(err => t.is(err.statusCode, 429, 'rate error'))
+  await t.throwsAsync(run(LIMIT + 3), createError[429], 'limit + 1')
 })

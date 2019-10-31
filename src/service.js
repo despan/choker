@@ -1,4 +1,22 @@
-const got = require('got')
+const R = require('ramda')
+
+const fetch = require('node-fetch')
+const createError = require('http-errors')
+
+const delay = require('delay')
+
+const random = require('random-normal')
+
+/**
+ *
+ */
+
+const recoverFetch = res => {
+  if (res.ok) return res
+
+  const err = createError(res.status)
+  return Promise.reject(err)
+}
 
 /**
  * Send a dummy request
@@ -6,25 +24,19 @@ const got = require('got')
  * @returns {Promise}
  */
 
-const send = (baseUrl, i) => {
-  const url = `${baseUrl}/${i}`
-  return got(url)
+const send = async (baseUrl, key) => {
+  // emulate latency
+  const networkTime = random({ mean: 200, dev: 40 })
+  await delay(networkTime)
+
+  // actual request code
+  const url = `${baseUrl}/hit/${key}`
+
+  return fetch(url)
+    .then(recoverFetch)
+    .then(() => key)
 }
 
-/**
- * Send multiple dummy requests
- *
- * @returns {Promise}
- */
+// expose curried commands
 
-const sendMulti = (baseUrl, numbers) => {
-  const sendTo = i => send(baseUrl, i)
-  return Promise.all(numbers.map(sendTo))
-}
-
-//
-
-module.exports = {
-  send,
-  sendMulti
-}
+module.exports.send = R.curry(send)

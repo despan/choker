@@ -2,39 +2,52 @@ const R = require('ramda')
 
 const delay = require('delay')
 
-const { sendMulti } = require('./service')
+const { send } = require('./service')
+
+/*
+ * Helpers
+ */
+
+/**
+ * Send multiple dummy requests
+ *
+ * @returns {Promise}
+ */
+
+const sendMulti = (baseUrl, numbers) => {
+  return Promise.all(numbers.map(send(baseUrl)))
+}
 
 /**
  * Runner
  *
  * @param {Object} opts
  * @param {number} opts.limit
- * @param {string} opts.url
+ * @param {string} opts.baseUrl
  * @param {Array} source
  *
  * @return {Promise}
  */
 
-function runner (opts, source) {
-  const { limit, url } = opts
+async function runner (opts, source) {
+  const { baseUrl, limit } = opts
 
   const batches = R.splitEvery(limit, source)
+  const results = []
 
-  const runNextBatch = () => {
-    const arr = batches.pop()
+  const add = list => results.push(...list)
 
-    if (!arr) return Promise.resolve()
+  for (let i = 0; i < batches.length; i++) {
+    const batch = batches[i]
 
-    // respect pending ops slightly
-    const sending = sendMulti(url, arr)
     const waiting = delay(1000)
+    const sending = sendMulti(baseUrl, batch)
+      .then(add)
 
-    return Promise
-      .all([sending, waiting])
-      .then(runNextBatch) // recursion
+    await Promise.all([sending, waiting])
   }
 
-  return runNextBatch()
+  return results
 }
 
 //
