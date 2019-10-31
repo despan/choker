@@ -27,7 +27,9 @@ const parseFetch = res => {
 
 const sendHit = (baseUrl, key) => {
   const url = `${baseUrl}/hit/${key}`
-  return fetch(url).then(parseFetch).then(() => key)
+  return fetch(url)
+    .then(parseFetch)
+    .then(() => key)
 }
 
 const sendMultiTo = (baseUrl, limit) => {
@@ -60,7 +62,7 @@ test.afterEach(async t => {
  */
 
 test.serial('stats on requests', async t => {
-  const baseUrl = t.context.url
+  const { baseUrl } = t.context
 
   const limit = 9
 
@@ -85,23 +87,16 @@ test.serial('stats on requests', async t => {
 })
 
 test.serial('rate limiter', async t => {
-  const baseUrl = t.context.url
-
-  const urlFor = key => `${baseUrl}/hit/${key}`
+  const { baseUrl } = t.context
 
   const run = limit => async () => {
-    const ps = []
-
-    while (limit--) {
-      const p = fetch(urlFor(limit))
-        .then(parseFetch)
-      ps.push(p)
-    }
+    const ps = R.range(1, limit + 1)
+      .map(key => sendHit(baseUrl, key))
 
     return Promise.all(ps)
   }
 
   await t.notThrowsAsync(run(LIMIT), 'limit')
 
-  await t.throwsAsync(run(LIMIT + 3), createError[429], 'limit + 1')
+  await t.throwsAsync(run(LIMIT + 1), createError[429], 'limit + 1')
 })
