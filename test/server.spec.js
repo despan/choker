@@ -1,6 +1,7 @@
 import test from 'ava'
 
-import got from 'got'
+import fetch from 'node-fetch'
+import createError from 'http-errors'
 
 import R from 'ramda'
 
@@ -11,15 +12,26 @@ import { createServer } from './helpers/server'
  */
 
 const LIMIT = 20
+const INTERVAL = 100
 
 /*
  * Helpers
  */
 
-const x3 = x => x * 3
+const parseFetch = res => {
+  if (res.ok) return res
 
-const sendMultiTo = (url, limit) => {
-  const send = x => got(`${url}/${x}`)
+  const err = createError(res.status)
+  return Promise.reject(err)
+}
+
+const sendHit = (baseUrl, key) => {
+  const url = `${baseUrl}/hit/${key}`
+  return fetch(url).then(parseFetch).then(() => key)
+}
+
+const sendMultiTo = (baseUrl, limit) => {
+  const send = key => sendHit(baseUrl, key)
   const numbers = R.range(1, limit)
   // make parallel requests
   return Promise.all(numbers.map(send))
@@ -32,7 +44,10 @@ const sendMultiTo = (url, limit) => {
 // setup
 test.beforeEach(async t => {
   // supply for later usage
-  t.context = await createServer({ limit: LIMIT })
+  t.context = await createServer({
+    limit: LIMIT,
+    interval: INTERVAL
+  })
 })
 
 // tear down
@@ -45,20 +60,23 @@ test.afterEach(async t => {
  */
 
 test.serial('stats on requests', async t => {
-  const { url } = t.context
+  const baseUrl = t.context.url
 
   const limit = 9
 
-  await got(url)
-    .then(res => {
-      t.is(res.body, '[]', 'ok initial stats')
+  const urlHistory = `${baseUrl}/history`
+
+  await fetch(urlHistory)
+    .then(res => res.json())
+    .then(body => {
+      t.deepEqual(body, [], 'ok initial stats')
     })
 
   // activity
-  await sendMultiTo(url, limit)
+  await sendMultiTo(baseUrl, limit)
 
-  await got(url)
-    .then(res => JSON.parse(res.body))
+  await fetch(urlHistory)
+    .then(res => res.json())
     .then(R.pluck('key'))
     .then(stats => {
       const expected = R.range(1, limit).map(String)
@@ -67,13 +85,23 @@ test.serial('stats on requests', async t => {
 })
 
 test.serial('rate limiter', async t => {
-  const run = limit => () =>
-    sendMultiTo(t.context.url, limit)
+  const baseUrl = t.context.url
+
+  const urlFor = key => `${baseUrl}/hit/${key}`
+
+  const run = limit => async () => {
+    const ps = []
+
+    while (limit--) {
+      const p = fetch(urlFor(limit))
+        .then(parseFetch)
+      ps.push(p)
+    }
+
+    return Promise.all(ps)
+  }
 
   await t.notThrowsAsync(run(LIMIT), 'limit')
 
-  // await t.throwsAsync(run(x2(LIMIT)), got.HTTPError, 'limit x2')
-
-  await t.throwsAsync(run(x3(LIMIT)), got.HTTPError, 'limit x3')
-    .then(err => t.is(err.statusCode, 429, 'rate error'))
+  await t.throwsAsync(run(LIMIT + 3), createError[429], 'limit + 1')
 })

@@ -1,39 +1,90 @@
 const Koa = require('koa')
 
-const random = require('random-normal')
+const Router = require('koa-router')
+
+const R = require('ramda')
+
 const delay = require('delay')
+const randomNormal = require('random-normal')
 
-const rateLimiter = require('./rate-limiter')
-
-/**
- * Resolve requests successfully w/ 204
- *
- * @returns {Function}
+/*
+ * Settings
  */
 
-function resolver () {
-  const stats = []
+const LIMIT = Infinity
+const INTERVAL = 1000
 
-  return async function resolve (ctx, next) {
-    // emulate computation load
-    const systemLoad = random({ mean: 100, dev: 10 })
-    await delay(systemLoad)
+const LATENCY_OPTIONS = {
+  mean: 50,
+  dev: 5
+}
 
-    if (ctx.path === '/') {
-      ctx.body = stats
-      return next()
-    } else {
-      // record
-      const key = ctx.path.slice(1)
-      const time = Date.now()
+/*
+ * Helpers
+ */
 
-      stats.push({ key, time })
+const checkCapacity = (opts = {}, history) => {
+  const limit = opts.limit || LIMIT
+  const interval = opts.interval || INTERVAL
 
-      // respond
-      ctx.status = 204
-      return next()
-    }
+  const time = Date.now() - interval
+  const tail = R.takeLastWhile(row => row.time > time, history)
+
+  return tail.length < limit
+}
+
+/**
+ *
+ */
+
+function latency () {
+  const opts = LATENCY_OPTIONS
+
+  return async (ctx, next) => {
+    const dt = randomNormal(opts)
+    await delay(dt)
+
+    return next()
   }
+}
+
+/**
+ *
+ */
+
+function routes (opts) {
+  const router = new Router()
+
+  const history = []
+  const hasCapacity = () => checkCapacity(opts, history)
+
+  router.get('/history', ctx => {
+    ctx.body = history
+  })
+
+  router
+    .use('/hit/:key', (ctx, next) => {
+      if (!hasCapacity()) {
+        ctx.status = 429
+        return null // short circuit
+      }
+
+      const { params } = ctx
+
+      // insert new record
+      history.push({
+        key: params.key,
+        time: Date.now()
+      })
+
+      return next()
+    })
+    .use(latency())
+    .get('/hit/:key', (ctx, next) => {
+      ctx.status = 204
+    })
+
+  return router.routes()
 }
 
 /**
@@ -47,10 +98,7 @@ function resolver () {
 function factory (params = {}) {
   const app = new Koa()
 
-  const limit = params.limit || Infinity
-  app.use(rateLimiter(limit))
-
-  app.use(resolver())
+  app.use(routes(params))
 
   return app
 }
