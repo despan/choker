@@ -1,3 +1,5 @@
+const R = require('ramda')
+
 const got = require('got')
 
 const delay = require('delay')
@@ -10,30 +12,18 @@ const random = require('random-normal')
  * @returns {Promise}
  */
 
-const send = async (baseUrl, i) => {
+const send = async (baseUrl, key) => {
   // emulate latency
   const networkTime = random({ mean: 250, dev: 50 })
   await delay(networkTime)
 
   // actual request code
-  const url = `${baseUrl}/${i}`
+  const url = `${baseUrl}/${key}`
+
   return got(url)
+    .then(() => key)
 }
 
-/**
- * Send multiple dummy requests
- *
- * @returns {Promise}
- */
+// expose curried commands
 
-const sendMulti = (baseUrl, numbers) => {
-  const sendTo = i => send(baseUrl, i)
-  return Promise.all(numbers.map(sendTo))
-}
-
-//
-
-module.exports = {
-  send,
-  sendMulti
-}
+module.exports.send = R.curry(send)

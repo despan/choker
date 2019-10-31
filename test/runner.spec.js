@@ -26,8 +26,6 @@ const TOTAL = 50
 
 const debug = Debug('sfc:runner:test')
 
-const x3 = x => x * 3
-
 const runWith = (baseUrl, limit, numbers) => {
   return runner({ url: baseUrl, limit }, numbers)
 }
@@ -50,6 +48,19 @@ test.afterEach(async t => {
 /*
  * Tests
  */
+
+test.serial('results', async t => {
+  const baseUrl = t.context.url
+  const limit = LIMIT
+  const numbers = R.range(1, TOTAL)
+
+  debug('Run for %O', { TOTAL, LIMIT })
+  const res = await runner({ url: baseUrl, limit }, numbers)
+
+  t.deepEqual(res, numbers)
+
+  debug('Results: %O', res)
+})
 
 test.serial('stats', async t => {
   const baseUrl = t.context.url
@@ -96,9 +107,11 @@ test.serial('perf', async t => {
 test.serial('limits', async t => {
   const baseUrl = t.context.url
 
-  const numbers = R.range(1, TOTAL)
-  const run = limit => runWith(baseUrl, limit, numbers)
+  const run = (limit, total) => {
+    const numbers = R.range(1, total)
+    return runWith(baseUrl, limit, numbers)
+  }
 
-  await t.notThrowsAsync(() => run(LIMIT), 'eq limit')
-  await t.throwsAsync(() => run(x3(LIMIT)), HTTPError, 'above limit')
+  await t.notThrowsAsync(() => run(LIMIT, TOTAL), 'eq limit')
+  await t.throwsAsync(() => run(LIMIT * 4, TOTAL * 4), HTTPError, 'above limit')
 })
