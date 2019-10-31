@@ -16,7 +16,14 @@ const LIMIT = 20
  * Helpers
  */
 
-const moreThan = x => x * 3
+const x3 = x => x * 3
+
+const sendMultiTo = (url, limit) => {
+  const send = x => got(`${url}/${x}`)
+  const numbers = R.range(1, limit)
+  // make parallel requests
+  return Promise.all(numbers.map(send))
+}
 
 /*
  * Hooks
@@ -37,28 +44,36 @@ test.afterEach(async t => {
  * Tests
  */
 
-test.serial('single request', async t => {
+test.serial('stats on requests', async t => {
   const { url } = t.context
 
-  const { statusCode } = await got(url)
+  const limit = 9
 
-  t.is(statusCode, 204)
+  await got(url)
+    .then(res => {
+      t.is(res.body, '[]', 'ok initial stats')
+    })
+
+  // activity
+  await sendMultiTo(url, limit)
+
+  await got(url)
+    .then(res => JSON.parse(res.body))
+    .then(R.pluck('key'))
+    .then(stats => {
+      const expected = R.range(1, limit).map(String)
+      t.deepEqual(stats.sort(), expected, 'ok final stats')
+    })
 })
 
 test.serial('rate limiter', async t => {
-  const { url } = t.context
+  const run = limit => () =>
+    sendMultiTo(t.context.url, limit)
 
-  const send = x => got(`${url}/${x}`)
+  await t.notThrowsAsync(run(LIMIT), 'limit')
 
-  const run = n => {
-    // deliberately run more
-    const numbers = R.range(1, n)
-    // make parallel requests
-    return Promise.all(numbers.map(send))
-  }
+  // await t.throwsAsync(run(x2(LIMIT)), got.HTTPError, 'limit x2')
 
-  await t.notThrowsAsync(run(LIMIT), 'below limit')
-
-  await t.throwsAsync(run(moreThan(LIMIT)), got.HTTPError, 'above limit')
+  await t.throwsAsync(run(x3(LIMIT)), got.HTTPError, 'limit x3')
     .then(err => t.is(err.statusCode, 429, 'rate error'))
 })

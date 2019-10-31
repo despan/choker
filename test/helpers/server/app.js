@@ -11,14 +11,29 @@ const rateLimiter = require('./rate-limiter')
  * @returns {Function}
  */
 
-async function resolve (ctx, next) {
-  // emulate computation load
-  const systemLoad = random({ mean: 100, dev: 10 })
-  await delay(systemLoad)
+function resolver () {
+  const stats = []
 
-  // respond
-  ctx.status = 204
-  return next()
+  return async function resolve (ctx, next) {
+    // emulate computation load
+    const systemLoad = random({ mean: 100, dev: 10 })
+    await delay(systemLoad)
+
+    if (ctx.path === '/') {
+      ctx.body = stats
+      return next()
+    } else {
+      // record
+      const key = ctx.path.slice(1)
+      const time = Date.now()
+
+      stats.push({ key, time })
+
+      // respond
+      ctx.status = 204
+      return next()
+    }
+  }
 }
 
 /**
@@ -35,7 +50,7 @@ function factory (params = {}) {
   const limit = params.limit || Infinity
   app.use(rateLimiter(limit))
 
-  app.use(resolve)
+  app.use(resolver())
 
   return app
 }

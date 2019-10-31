@@ -2,12 +2,16 @@ import test from 'ava'
 
 import R from 'ramda'
 
-import { HTTPError } from 'got'
+import got from 'got'
 
 import Debug from './helpers/debug'
 import { createServer } from './helpers/server'
 
 import runner from '../src/runner'
+
+//
+
+const { HTTPError } = got
 
 /*
  * Settings
@@ -23,6 +27,10 @@ const TOTAL = 50
 const debug = Debug('sfc:runner:test')
 
 const x3 = x => x * 3
+
+const runWith = (baseUrl, limit, numbers) => {
+  return runner({ url: baseUrl, limit }, numbers)
+}
 
 /*
  * Hooks
@@ -43,24 +51,54 @@ test.afterEach(async t => {
  * Tests
  */
 
-test.serial('limits', async t => {
-  const { url } = t.context
-
+test.serial('stats', async t => {
+  const baseUrl = t.context.url
   const numbers = R.range(1, TOTAL)
 
-  const run = limit => runner({ url, limit }, numbers)
+  await runWith(baseUrl, LIMIT, numbers)
 
-  // ok case
+  const stats = await got(baseUrl)
+    .then(res => JSON.parse(res.body))
+
+  t.is(stats.length, TOTAL - 1, 'no missing hits')
+
+  // segment by seconds
+  const byTime = row => Math.floor(row.time / 1000) % 100
+  // stat spec to list of keys
+  const keys = R.pluck('key')
+
+  const aggregate = R.compose(
+    R.map(keys),
+    R.groupBy(byTime)
+  )
+
+  debug('Server stats: %O', aggregate(stats))
+})
+
+test.serial('perf', async t => {
+  const baseUrl = t.context.url
+
+  const numbers = R.range(1, TOTAL)
+  const run = limit => runWith(baseUrl, limit, numbers)
+
   debug('Run %d with limit of %d', TOTAL, LIMIT)
   debug('  ideally should take %d s', TOTAL / LIMIT)
   const startOk = process.hrtime()
 
-  await t.notThrowsAsync(() => run(LIMIT), 'below limit')
+  await run(LIMIT)
 
   const endOk = process.hrtime(startOk)
   debug('  took %h', endOk)
 
-  // err case
+  t.pass()
+})
 
+test.serial('limits', async t => {
+  const baseUrl = t.context.url
+
+  const numbers = R.range(1, TOTAL)
+  const run = limit => runWith(baseUrl, limit, numbers)
+
+  await t.notThrowsAsync(() => run(LIMIT), 'eq limit')
   await t.throwsAsync(() => run(x3(LIMIT)), HTTPError, 'above limit')
 })
