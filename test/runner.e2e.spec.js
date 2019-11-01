@@ -3,9 +3,13 @@ import test from 'ava'
 import R from 'ramda'
 
 import fetch from 'node-fetch'
+import delay from 'delay'
+import random from 'random-normal'
 
 import Debug from './helpers/debug'
+
 import { createServer } from '../vendor/server'
+import { sendTo } from '../vendor/client'
 
 import runner from '../src/runner'
 
@@ -59,7 +63,7 @@ test.serial('results', async t => {
 
   const numbers = numbersTo(25)
 
-  const res = await runner(baseUrl, RATE, numbers)
+  const res = await runner(sendTo(baseUrl), RATE, numbers)
 
   t.deepEqual(R.pluck('key', res), numbers)
 })
@@ -68,7 +72,7 @@ test.serial('stats', async t => {
   const { baseUrl } = t.context
 
   const numbers = numbersTo(50)
-  const res = await runner(baseUrl, RATE, numbers)
+  const res = await runner(sendTo(baseUrl), RATE, numbers)
 
   // acquire stats
   const history = await getHistoryFrom(baseUrl)
@@ -98,7 +102,7 @@ test.serial('perf', async t => {
   debug('  ideally should take %d s', total / RATE.limit * RATE.interval)
   const startOk = process.hrtime()
 
-  await runner(baseUrl, RATE, numbersTo(total))
+  await runner(sendTo(baseUrl), RATE, numbersTo(total))
 
   const endOk = process.hrtime(startOk)
   debug('  took %h', endOk)
@@ -109,31 +113,49 @@ test.serial('perf', async t => {
 test.serial('limits', async t => {
   const { baseUrl } = t.context
 
-  const run = (limit, total) => {
+  const run = (limit, total, latency = 200) => {
+    const send = async key => {
+      // emulate latency
+      const params = {
+        mean: latency,
+        dev: latency / 10
+      }
+      await delay(random({ params }))
+
+      return sendTo(baseUrl, key)
+    }
+
     const rate = {
       limit,
       interval: RATE.interval
     }
-    return runner(baseUrl, rate, numbersTo(50))
+
+    return runner(send, rate, numbersTo(50))
   }
 
-  const { limit } = RATE
+  const { limit, interval } = RATE
 
   await t.notThrowsAsync(
     () => run(limit, limit),
     'eq limit eq total'
   )
 
+  await delay(interval)
+
   await t.notThrowsAsync(
     () => run(limit, limit * 4),
     'eq limit'
   )
+
+  await delay(interval)
 
   await t.throwsAsync(
     () => run(limit + 1, limit * 4),
     Error,
     'limit + 1'
   )
+
+  await delay(interval)
 
   await t.throwsAsync(
     () => run(limit * 2, limit * 4),
