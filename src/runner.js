@@ -4,9 +4,9 @@ const R = require('ramda')
 
 const delay = require('delay')
 
-const Service = require('./service')
+const { Action, Request } = require('./types')
 
-const H = require('./helpers')
+const Service = require('./service')
 
 /*
  * Settings
@@ -44,47 +44,48 @@ async function runner (baseUrl, rate, input) {
     debug('Started thread')
 
     const runOne = async () => {
-      const now = Date.now()
-      const winStart = now - interval
-
-      const activeItems = acc.filter(H.isActiveSince(winStart))
-
-      debug('Found %d active items', activeItems.length)
-
-      if (activeItems.length >= limit) {
-        const winEarliest = H.earliestDoneAt(activeItems)
-        const timeAgo = now - winEarliest
-
-        debug('Earliest active item completed %d ms ago', timeAgo)
-
-        const timeToWait = Math.max(interval - timeAgo, 0)
-
-        debug('Retry after %d ms', timeToWait)
-
-        return delay(timeToWait)
-          .then(runOne)
-      }
-
       // short circuit
       if (source.length === 0) {
+        debug('Exhausted')
         return Promise.resolve()
       }
 
-      // run
-      const key = source.shift()
-      debug('Run for key %s', key)
+      //
 
-      const idx = acc.length
-      acc[idx] = H.pending(key)
+      const now = Date.now()
 
-      return send(key)
-        .then(() => {
-          acc[idx] = H.resolved(key, Date.now())
-        })
-        // .catch(() => {
-        //   acc[idx] = H.rejected(key, Date.now())
-        // })
-        .then(runOne)
+      const isActive = Request.isActiveSince(now - interval)
+      const activeItems = acc.filter(isActive)
+
+      debug('Found %d active items', activeItems.length)
+
+      const Send = () => {
+        // run
+        const key = source.shift()
+        debug('Run for key %s', key)
+
+        const idx = acc.length
+        acc[idx] = Request.Pending(key)
+
+        return send(key)
+          .then(res => {
+            acc[idx] = Request.Ended(key, Date.now(), res)
+          })
+          // .catch(err => {
+          //   acc[idx] = Request.Ended(key, Date.now(), err)
+          // })
+          .then(runOne)
+      }
+
+      const Backoff = time => {
+        debug('Retry after %d ms', time)
+        return delay(time)
+          .then(runOne)
+      }
+
+      return Action
+        .actionForBy(now, rate, activeItems)
+        .cata({ Send, Backoff })
     }
 
     return runOne()
