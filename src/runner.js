@@ -8,7 +8,7 @@ const { Request } = require('./types')
 
 const { actionForBy } = require('./helpers')
 
-const Service = require('./service')
+const { sendTo } = require('../vendor')
 
 /*
  * Settings
@@ -33,7 +33,7 @@ const Service = require('./service')
 async function runner (baseUrl, rate, input) {
   const { limit, interval } = rate
 
-  const send = Service.send(baseUrl)
+  const send = sendTo(baseUrl)
 
   //
   const source = input.slice(0) // clone
@@ -66,6 +66,7 @@ async function runner (baseUrl, rate, input) {
         const key = source.shift()
         debug('Run for key %s', key)
 
+        // TODO: use key-value store for `acc`
         const idx = acc.length
         acc[idx] = Request.Pending(key)
 

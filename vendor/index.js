@@ -24,7 +24,7 @@ const recoverFetch = res => {
  * @returns {Promise}
  */
 
-const send = async (baseUrl, key) => {
+const sendTo = async (baseUrl, key) => {
   // emulate latency
   const networkTime = random({ mean: 200, dev: 40 })
   await delay(networkTime)
@@ -39,4 +39,4 @@ const send = async (baseUrl, key) => {
 
 // expose curried commands
 
-module.exports.send = R.curry(send)
+module.exports.sendTo = R.curry(sendTo)
