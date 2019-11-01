@@ -4,7 +4,9 @@ const R = require('ramda')
 
 const delay = require('delay')
 
-const { Action, Request } = require('./types')
+const { Request } = require('./types')
+
+const { actionForBy } = require('./helpers')
 
 const Service = require('./service')
 
@@ -83,8 +85,7 @@ async function runner (baseUrl, rate, input) {
           .then(runOne)
       }
 
-      return Action
-        .actionForBy(now, rate, activeItems)
+      return actionForBy(now, rate, activeItems)
         .cata({ Send, Backoff })
     }
 
