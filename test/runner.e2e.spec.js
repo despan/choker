@@ -2,14 +2,13 @@ import test from 'ava'
 
 import R from 'ramda'
 
-import fetch from 'node-fetch'
 import delay from 'delay'
 import random from 'random-normal'
 
 import Debug from './helpers/debug'
 
 import { createServer } from '../vendor/server'
-import { sendTo } from '../vendor/client'
+import { sendTo, getServerHistoryFrom } from '../vendor/client'
 
 import runner from '../src/runner'
 
@@ -31,13 +30,6 @@ const RATE = {
  */
 
 const numbersTo = max => R.range(1, max + 1)
-
-const getHistoryFrom = baseUrl => {
-  const url = `${baseUrl}/history`
-  const recover = res => res.json()
-
-  return fetch(url).then(recover)
-}
 
 /*
  * Hooks
@@ -75,7 +67,7 @@ test.serial('stats', async t => {
   const res = await runner(sendTo(baseUrl), RATE, numbers)
 
   // acquire stats
-  const history = await getHistoryFrom(baseUrl)
+  const history = await getServerHistoryFrom(baseUrl)
 
   t.is(history.length, 50, 'no missing hits')
 

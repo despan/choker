@@ -1,11 +1,10 @@
 import test from 'ava'
 
-import fetch from 'node-fetch'
 import createError from 'http-errors'
 
 import R from 'ramda'
 
-import { sendTo } from '../vendor/client'
+import { sendTo, getServerHistoryFrom } from '../vendor/client'
 import { createServer } from '../vendor/server'
 
 /*
@@ -52,10 +51,7 @@ test.serial('stats on requests', async t => {
 
   const limit = 9
 
-  const urlHistory = `${baseUrl}/history`
-
-  await fetch(urlHistory)
-    .then(res => res.json())
+  await getServerHistoryFrom(baseUrl)
     .then(body => {
       t.deepEqual(body, [], 'ok initial stats')
     })
@@ -63,8 +59,7 @@ test.serial('stats on requests', async t => {
   // activity
   await sendMultiTo(baseUrl, limit)
 
-  await fetch(urlHistory)
-    .then(res => res.json())
+  await getServerHistoryFrom(baseUrl)
     .then(R.pluck('key'))
     .then(stats => {
       const expected = R.range(1, limit).map(String)
