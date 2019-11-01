@@ -26,19 +26,19 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
     "get-port": "^5.0.0",
+    "http-errors": "^1.7.3",
     "husky": "^3.0.9",
     "koa": "^2.11.0",
     "koa-router": "^7.4.0",
     "lint-staged": "^9.4.2",
-    "pretty-hrtime": "^1.0.3"
+    "node-fetch": "^2.6.0",
+    "pretty-hrtime": "^1.0.3",
+    "random-normal": "^1.0.0"
   },
   "dependencies": {
     "daggy": "^1.4.0",
     "debug": "^4.1.1",
     "delay": "^4.3.0",
-    "http-errors": "^1.7.3",
-    "node-fetch": "^2.6.0",
-    "ramda": "^0.26.1",
-    "random-normal": "^1.0.0"
+    "ramda": "^0.26.1"
   }
 }

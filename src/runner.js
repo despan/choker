@@ -8,8 +8,6 @@ const { Request } = require('./types')
 
 const { actionForBy } = require('./helpers')
 
-const { sendTo } = require('../vendor')
-
 /*
  * Settings
  */
@@ -21,7 +19,7 @@ const { sendTo } = require('../vendor')
 /**
  * Runner
  *
- * @param {string} baseUrl
+ * @param {Function} fn
  * @param {Object} rate
  * @param {number} rate.limit
  * @param {number} rate.interval
@@ -30,10 +28,8 @@ const { sendTo } = require('../vendor')
  * @return {Promise}
  */
 
-async function runner (baseUrl, rate, input) {
+async function runner (fn, rate, input) {
   const { limit, interval } = rate
-
-  const send = sendTo(baseUrl)
 
   //
   const source = input.slice(0) // clone
@@ -70,13 +66,16 @@ async function runner (baseUrl, rate, input) {
         const idx = acc.length
         acc[idx] = Request.Pending(key)
 
-        return send(key)
+        return fn(key)
           .then(res => {
             acc[idx] = Request.Ended(key, Date.now(), res)
           })
-          // .catch(err => {
-          //   acc[idx] = Request.Ended(key, Date.now(), err)
-          // })
+          .catch(err => {
+            debug('Error: %s', err.message)
+
+            // acc[idx] = Request.Ended(key, Date.now(), err)
+            return Promise.reject(err)
+          })
           .then(runOne)
       }
 

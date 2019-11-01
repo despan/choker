@@ -1,11 +1,11 @@
 import test from 'ava'
 
-import fetch from 'node-fetch'
 import createError from 'http-errors'
 
 import R from 'ramda'
 
-import { createServer } from './helpers/server'
+import { sendTo, getServerHistoryFrom } from '../vendor/client'
+import { createServer } from '../vendor/server'
 
 /*
  * Settings
@@ -18,25 +18,10 @@ const INTERVAL = 100
  * Helpers
  */
 
-const parseFetch = res => {
-  if (res.ok) return res
-
-  const err = createError(res.status)
-  return Promise.reject(err)
-}
-
-const sendHit = (baseUrl, key) => {
-  const url = `${baseUrl}/hit/${key}`
-  return fetch(url)
-    .then(parseFetch)
-    .then(() => key)
-}
-
 const sendMultiTo = (baseUrl, limit) => {
-  const send = key => sendHit(baseUrl, key)
   const numbers = R.range(1, limit)
   // make parallel requests
-  return Promise.all(numbers.map(send))
+  return Promise.all(numbers.map(sendTo(baseUrl)))
 }
 
 /*
@@ -66,10 +51,7 @@ test.serial('stats on requests', async t => {
 
   const limit = 9
 
-  const urlHistory = `${baseUrl}/history`
-
-  await fetch(urlHistory)
-    .then(res => res.json())
+  await getServerHistoryFrom(baseUrl)
     .then(body => {
       t.deepEqual(body, [], 'ok initial stats')
     })
@@ -77,8 +59,7 @@ test.serial('stats on requests', async t => {
   // activity
   await sendMultiTo(baseUrl, limit)
 
-  await fetch(urlHistory)
-    .then(res => res.json())
+  await getServerHistoryFrom(baseUrl)
     .then(R.pluck('key'))
     .then(stats => {
       const expected = R.range(1, limit).map(String)
@@ -89,12 +70,7 @@ test.serial('stats on requests', async t => {
 test.serial('rate limiter', async t => {
   const { baseUrl } = t.context
 
-  const run = limit => async () => {
-    const ps = R.range(1, limit + 1)
-      .map(key => sendHit(baseUrl, key))
-
-    return Promise.all(ps)
-  }
+  const run = limit => sendMultiTo(baseUrl, limit)
 
   await t.notThrowsAsync(run(LIMIT), 'limit')
 

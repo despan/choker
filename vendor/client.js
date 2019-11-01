@@ -3,10 +3,6 @@ const R = require('ramda')
 const fetch = require('node-fetch')
 const createError = require('http-errors')
 
-const delay = require('delay')
-
-const random = require('random-normal')
-
 /**
  *
  */
@@ -24,11 +20,7 @@ const recoverFetch = res => {
  * @returns {Promise}
  */
 
-const sendTo = async (baseUrl, key) => {
-  // emulate latency
-  const networkTime = random({ mean: 200, dev: 40 })
-  await delay(networkTime)
-
+const sendTo = (baseUrl, key) => {
   // actual request code
   const url = `${baseUrl}/hit/${key}`
 
@@ -37,6 +29,20 @@ const sendTo = async (baseUrl, key) => {
     .then(() => key)
 }
 
+/**
+ * Get access log
+ *
+ * @returns {Promise}
+ */
+
+const getServerHistoryFrom = baseUrl => {
+  const url = `${baseUrl}/history`
+
+  return fetch(url)
+    .then(res => res.json())
+}
+
 // expose curried commands
 
 module.exports.sendTo = R.curry(sendTo)
+module.exports.getServerHistoryFrom = getServerHistoryFrom
