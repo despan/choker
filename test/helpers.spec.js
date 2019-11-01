@@ -1,5 +1,7 @@
 import test from 'ava'
 
+import Backlog from '../src/Backlog'
+
 import { Action, Request } from '../src/types'
 
 import { actionForBy } from '../src/helpers'
@@ -9,16 +11,16 @@ import { actionForBy } from '../src/helpers'
 test('actionForBy', t => {
   t.is(typeof actionForBy, 'function')
 
-  const list = [
-    Request.Pending(1),
-    Request.Ended(2, 2, 'ok'),
-    Request.Ended(3, 3, 'ok'),
-    Request.Ended(4, 4, 'ok'),
-    Request.Pending(5)
-  ]
+  const data = {
+    1: Request.Pending(1),
+    2: Request.Ended(2, 2, 'ok'),
+    3: Request.Ended(3, 3, 'ok'),
+    4: Request.Ended(4, 4, 'ok'),
+    5: Request.Pending(5)
+  }
 
   const get = (now, limit, interval) =>
-    actionForBy(now, { limit, interval }, list)
+    actionForBy(now, { limit, interval }, new Backlog(data))
 
   t.is(get(6, 6, 3), Action.Send, 'available')
 

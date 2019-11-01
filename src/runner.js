@@ -4,6 +4,8 @@ const R = require('ramda')
 
 const delay = require('delay')
 
+const Backlog = require('./Backlog')
+
 const { Request } = require('./types')
 
 const { actionForBy } = require('./helpers')
@@ -34,7 +36,7 @@ async function runner (fn, rate, input) {
   //
   const source = input.slice(0) // clone
   // results accumulator
-  const acc = []
+  const acc = new Backlog()
 
   const runThread = async name => {
     const debug = Debug(`sfc:runner:thread:${name}`)
@@ -63,16 +65,14 @@ async function runner (fn, rate, input) {
         debug('Run for key %s', key)
 
         // TODO: use key-value store for `acc`
-        const idx = acc.length
-        acc[idx] = Request.Pending(key)
+        acc.put(key, Request.Pending(key))
 
         return fn(key)
           .then(res => {
-            acc[idx] = Request.Ended(key, Date.now(), res)
+            acc.put(key, Request.Ended(key, Date.now(), res))
           })
           .catch(err => {
             debug('Error: %s', err.message)
-
             // acc[idx] = Request.Ended(key, Date.now(), err)
             return Promise.reject(err)
           })
@@ -101,7 +101,7 @@ async function runner (fn, rate, input) {
 
   return Promise
     .all(ps)
-    .then(() => acc)
+    .then(() => acc.values())
 }
 
 // expose curried

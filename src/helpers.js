@@ -9,21 +9,23 @@ const { Action, Request } = require('./types')
  * @param {Object} rate
  * @param {number} rate.limit
  * @param {number} rate.interval
- * @param {Array} requests
+ * @param {Array} backlog
  *
  * @returns {Action}
  */
 
-function actionForBy (now, rate, requests) {
+function actionForBy (now, rate, backlog) {
   const { limit, interval } = rate
 
   // has available
-  if (requests.length < limit) return Action.Send // short circuit
+  if (backlog.size < limit) return Action.Send // short circuit
 
   // estimate backoff time
 
-  const timesEnded = requests
-    .filter(Request.Ended.is)
+  const endedRequests = backlog.filter(Request.Ended.is)
+
+  const timesEnded = endedRequests
+    .values()
     .map(Request.timeOf)
 
   const timePassedMax = now - Math.min(...timesEnded)
