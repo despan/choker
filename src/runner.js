@@ -1,5 +1,7 @@
 const Debug = require('debug')
 
+const R = require('ramda')
+
 const delay = require('delay')
 
 const Service = require('./service')
@@ -10,8 +12,6 @@ const H = require('./helpers')
  * Settings
  */
 
-const INTERVAL = 1000
-
 /*
  * Helpers
  */
@@ -19,16 +19,17 @@ const INTERVAL = 1000
 /**
  * Runner
  *
- * @param {Object} opts
- * @param {number} opts.limit
- * @param {string} opts.baseUrl
+ * @param {string} baseUrl
+ * @param {Object} rate
+ * @param {number} rate.limit
+ * @param {number} rate.interval
  * @param {Array} source
  *
  * @return {Promise}
  */
 
-async function runner (opts, input) {
-  const { baseUrl, limit } = opts
+async function runner (baseUrl, rate, input) {
+  const { limit, interval } = rate
 
   const send = Service.send(baseUrl)
 
@@ -44,7 +45,7 @@ async function runner (opts, input) {
 
     const runOne = async () => {
       const now = Date.now()
-      const winStart = now - INTERVAL
+      const winStart = now - interval
 
       const activeItems = acc.filter(H.isActiveSince(winStart))
 
@@ -56,7 +57,7 @@ async function runner (opts, input) {
 
         debug('Earliest active item completed %d ms ago', timeAgo)
 
-        const timeToWait = Math.max(INTERVAL - timeAgo, 0)
+        const timeToWait = Math.max(interval - timeAgo, 0)
 
         debug('Retry after %d ms', timeToWait)
 
@@ -101,6 +102,6 @@ async function runner (opts, input) {
     .then(() => acc)
 }
 
-//
+// expose curried
 
-module.exports = runner
+module.exports = R.curry(runner)

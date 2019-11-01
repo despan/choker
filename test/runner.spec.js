@@ -17,8 +17,10 @@ const debug = Debug('sfc:runner:test')
  * Settings
  */
 
-const LIMIT = 10
-const TOTAL = 50
+const RATE = {
+  limit: 20,
+  interval: 250
+}
 
 /*
  * Helpers
@@ -40,7 +42,7 @@ const getHistoryFrom = baseUrl => {
 // setup
 test.beforeEach(async t => {
   // run a test server on available port
-  t.context = await createServer({ limit: LIMIT }) // { baseUrl, server }
+  t.context = await createServer(RATE) // { baseUrl, server }
 })
 
 // tear down
@@ -55,9 +57,9 @@ test.afterEach(async t => {
 test.serial('results', async t => {
   const { baseUrl } = t.context
 
-  const numbers = numbersTo(TOTAL)
+  const numbers = numbersTo(25)
 
-  const res = await runner({ baseUrl, limit: LIMIT }, numbers)
+  const res = await runner(baseUrl, RATE, numbers)
 
   t.deepEqual(R.pluck('key', res), numbers)
 })
@@ -65,16 +67,16 @@ test.serial('results', async t => {
 test.serial('stats', async t => {
   const { baseUrl } = t.context
 
-  const numbers = numbersTo(TOTAL)
-  const res = await runner({ baseUrl, limit: LIMIT }, numbers)
+  const numbers = numbersTo(50)
+  const res = await runner(baseUrl, RATE, numbers)
 
   // acquire stats
   const history = await getHistoryFrom(baseUrl)
 
-  t.is(history.length, TOTAL, 'no missing hits')
+  t.is(history.length, 50, 'no missing hits')
 
   // segment by seconds
-  const byTime = row => Math.floor(row.time / 1000) % 100
+  const byTime = row => Math.floor(row.time / 1000)
   // stat spec to list of keys
   const keys = R.pluck('key')
 
@@ -90,11 +92,13 @@ test.serial('stats', async t => {
 test.serial('perf', async t => {
   const { baseUrl } = t.context
 
-  debug('Run for %O', { TOTAL, LIMIT })
-  debug('  ideally should take %d s', TOTAL / LIMIT)
+  const total = 50
+
+  debug('Run for rate %O total %d', RATE, total)
+  debug('  ideally should take %d s', total / RATE.limit * RATE.interval)
   const startOk = process.hrtime()
 
-  await runner({ baseUrl, limit: LIMIT }, numbersTo(TOTAL))
+  await runner(baseUrl, RATE, numbersTo(total))
 
   const endOk = process.hrtime(startOk)
   debug('  took %h', endOk)
@@ -106,10 +110,34 @@ test.serial('limits', async t => {
   const { baseUrl } = t.context
 
   const run = (limit, total) => {
-    return runner({ baseUrl, limit }, numbersTo(TOTAL))
+    const rate = {
+      limit,
+      interval: RATE.interval
+    }
+    return runner(baseUrl, rate, numbersTo(50))
   }
 
-  await t.notThrowsAsync(() => run(LIMIT, LIMIT), 'eq limit eq total')
-  await t.notThrowsAsync(() => run(LIMIT, TOTAL), 'eq limit')
-  await t.throwsAsync(() => run(LIMIT * 4, TOTAL * 4))
+  const { limit } = RATE
+
+  await t.notThrowsAsync(
+    () => run(limit, limit),
+    'eq limit eq total'
+  )
+
+  await t.notThrowsAsync(
+    () => run(limit, limit * 4),
+    'eq limit'
+  )
+
+  await t.throwsAsync(
+    () => run(limit + 1, limit * 4),
+    Error,
+    'limit + 1'
+  )
+
+  await t.throwsAsync(
+    () => run(limit * 2, limit * 4),
+    Error,
+    'limit x 2'
+  )
 })
