@@ -1,22 +1,20 @@
-const R = require('ramda')
+const Debug = require('debug')
 
 const delay = require('delay')
 
-const { send } = require('./service')
+const Service = require('./service')
+
+const H = require('./helpers')
+
+/*
+ * Settings
+ */
+
+const INTERVAL = 1000
 
 /*
  * Helpers
  */
-
-/**
- * Send multiple dummy requests
- *
- * @returns {Promise}
- */
-
-const sendMulti = (baseUrl, numbers) => {
-  return Promise.all(numbers.map(send(baseUrl)))
-}
 
 /**
  * Runner
@@ -29,25 +27,78 @@ const sendMulti = (baseUrl, numbers) => {
  * @return {Promise}
  */
 
-async function runner (opts, source) {
+async function runner (opts, input) {
   const { baseUrl, limit } = opts
 
-  const batches = R.splitEvery(limit, source)
-  const results = []
+  const send = Service.send(baseUrl)
 
-  const add = list => results.push(...list)
+  //
+  const source = input.slice(0) // clone
+  // results accumulator
+  const acc = []
 
-  for (let i = 0; i < batches.length; i++) {
-    const batch = batches[i]
+  const runThread = async name => {
+    const debug = Debug(`sfc:runner:thread:${name}`)
 
-    const waiting = delay(1000)
-    const sending = sendMulti(baseUrl, batch)
-      .then(add)
+    debug('Started thread')
 
-    await Promise.all([sending, waiting])
+    const runOne = async () => {
+      const now = Date.now()
+      const winStart = now - INTERVAL
+
+      const activeItems = acc.filter(H.isActiveSince(winStart))
+
+      debug('Found %d active items', activeItems.length)
+
+      if (activeItems.length >= limit) {
+        const winEarliest = H.earliestDoneAt(activeItems)
+        const timeAgo = now - winEarliest
+
+        debug('Earliest active item completed %d ms ago', timeAgo)
+
+        const timeToWait = Math.max(INTERVAL - timeAgo, 0)
+
+        debug('Retry after %d ms', timeToWait)
+
+        return delay(timeToWait)
+          .then(runOne)
+      }
+
+      // short circuit
+      if (source.length === 0) {
+        return Promise.resolve()
+      }
+
+      // run
+      const key = source.shift()
+      debug('Run for key %s', key)
+
+      const idx = acc.length
+      acc[idx] = H.pending(key)
+
+      return send(key)
+        .then(() => {
+          acc[idx] = H.resolved(key, Date.now())
+        })
+        // .catch(() => {
+        //   acc[idx] = H.rejected(key, Date.now())
+        // })
+        .then(runOne)
+    }
+
+    return runOne()
+      .then(() => debug('Exhausted'))
   }
 
-  return results
+  const ps = []
+
+  for (let i = 0; i < limit; i++) {
+    ps.push(runThread(i))
+  }
+
+  return Promise
+    .all(ps)
+    .then(() => acc)
 }
 
 //

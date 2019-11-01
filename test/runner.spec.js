@@ -9,6 +9,10 @@ import { createServer } from './helpers/server'
 
 import runner from '../src/runner'
 
+// debug
+
+const debug = Debug('sfc:runner:test')
+
 /*
  * Settings
  */
@@ -19,8 +23,6 @@ const TOTAL = 50
 /*
  * Helpers
  */
-
-const debug = Debug('sfc:runner:test')
 
 const numbersTo = max => R.range(1, max + 1)
 
@@ -50,24 +52,26 @@ test.afterEach(async t => {
  * Tests
  */
 
-test.serial.failing('results', async t => {
+test.serial('results', async t => {
+  const { baseUrl } = t.context
+
+  const numbers = numbersTo(TOTAL)
+
+  const res = await runner({ baseUrl, limit: LIMIT }, numbers)
+
+  t.deepEqual(R.pluck('key', res), numbers)
+})
+
+test.serial('stats', async t => {
   const { baseUrl } = t.context
 
   const numbers = numbersTo(TOTAL)
   const res = await runner({ baseUrl, limit: LIMIT }, numbers)
 
-  t.deepEqual(res, numbers)
-})
-
-test.serial.failing('stats', async t => {
-  const { baseUrl } = t.context
-
-  await runner({ baseUrl, limit: LIMIT }, numbersTo(TOTAL))
-
   // acquire stats
   const history = await getHistoryFrom(baseUrl)
 
-  t.is(history.length, TOTAL - 1, 'no missing hits')
+  t.is(history.length, TOTAL, 'no missing hits')
 
   // segment by seconds
   const byTime = row => Math.floor(row.time / 1000) % 100
@@ -79,10 +83,11 @@ test.serial.failing('stats', async t => {
     R.groupBy(byTime)
   )
 
-  debug('Server stats: %O', aggregate(history))
+  debug('Aggregated results: %O', aggregate(res))
+  debug('Aggregated server stats: %O', aggregate(history))
 })
 
-test.serial.failing('perf', async t => {
+test.serial('perf', async t => {
   const { baseUrl } = t.context
 
   debug('Run for %O', { TOTAL, LIMIT })
@@ -97,7 +102,7 @@ test.serial.failing('perf', async t => {
   t.pass()
 })
 
-test.serial.failing('limits', async t => {
+test.serial('limits', async t => {
   const { baseUrl } = t.context
 
   const run = (limit, total) => {
