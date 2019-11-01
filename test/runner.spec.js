@@ -5,7 +5,7 @@ import R from 'ramda'
 import fetch from 'node-fetch'
 
 import Debug from './helpers/debug'
-import { createServer } from './helpers/server'
+import { createServer } from '../vendor/server'
 
 import runner from '../src/runner'
 

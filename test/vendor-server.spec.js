@@ -5,7 +5,7 @@ import createError from 'http-errors'
 
 import R from 'ramda'
 
-import { createServer } from './helpers/server'
+import { createServer } from '../vendor/server'
 
 /*
  * Settings
