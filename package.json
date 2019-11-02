@@ -1,6 +1,6 @@
 {
   "name": "suffocative",
-  "version": "0.0.0-development",
+  "version": "0.0.0",
   "description": "Rate limiter, async",
   "keywords": [
     "limiter",
