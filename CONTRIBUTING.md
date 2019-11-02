@@ -43,3 +43,7 @@ automatically on commit.
 **Tests**
 
 > The best issue report is a failing test proving it.
+
+**Versioning**
+
+Use [Sentimental Versioning](http://sentimentalversioning.org/).

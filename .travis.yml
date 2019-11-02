@@ -18,11 +18,3 @@ script:
   - npm run test:coverage
 after_success:
   - npm run report-coverage
-
-jobs:
-  include:
-    # Define the release stage that runs semantic-release
-    - stage: release
-      node_js: lts/*
-      script:
-        - npm run semantic-release
