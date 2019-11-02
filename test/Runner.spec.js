@@ -2,7 +2,7 @@ import test from 'ava'
 
 import delay from 'delay'
 
-import runner from '../src/runner'
+import Runner from '../src/Runner'
 
 // debug
 
@@ -43,7 +43,7 @@ test.only('execution', async t => {
     .from({ length })
     .map((_, key) => ({ id: String(key) }))
 
-  const res = await runner(fn, { limit, interval }, items)
+  const res = await Runner({ limit, interval }, fn, items)
 
   t.is(timeline.length, length)
   t.is(res.length, length)

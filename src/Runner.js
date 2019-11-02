@@ -21,16 +21,16 @@ const debug = Debug('sfc:runner')
 /**
  * Runner
  *
- * @param {Function} fn
  * @param {Object} rate
  * @param {number} rate.limit
  * @param {number} rate.interval
+ * @param {Function} fn
  * @param {Array} source
  *
  * @return {Promise}
  */
 
-async function runner (fn, rate, input) {
+async function Runner (rate, fn, input) {
   const { limit, interval } = rate
 
   //
@@ -85,4 +85,4 @@ async function runner (fn, rate, input) {
 
 // expose curried
 
-module.exports = R.curry(runner)
+module.exports = R.curry(Runner)
