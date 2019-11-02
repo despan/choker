@@ -1,22 +1,24 @@
-const Debug = require('debug')
-
 const R = require('ramda')
 
 const delay = require('delay')
 
 const Backlog = require('./Backlog')
 
-const { actionForBy } = require('./helpers')
+const { Action, Record } = require('./types')
 
 /*
  * Settings
  */
 
-const debug = Debug('sfc:runner')
-
 /*
  * Helpers
  */
+
+const earliestTimeFrom = R.compose(
+  Record.timeOf,
+  R.head,
+  Backlog.values
+)
 
 /**
  * Runner
@@ -41,6 +43,23 @@ async function Runner (rate, fn, input) {
 
   const putPending = Backlog.putPendingInto(acc)
   const putCompleteWith = Backlog.putCompleteNowWithInto(acc)
+
+  //
+
+  function actionBy (time) {
+    const accRecent = Backlog.filterActiveSince(time, acc)
+
+    // has available, short circuit
+    if (accRecent.size < limit) return Action.Run
+
+    // estimate backoff time
+    const timeout = earliestTimeFrom(accRecent) - time
+
+    return timeout > 0
+      ? Action.Backoff(timeout)
+      : Action.Run
+  }
+
   //
 
   const Run = () => {
@@ -54,7 +73,6 @@ async function Runner (rate, fn, input) {
   }
 
   const Backoff = time => {
-    debug('Retry after %d ms', time)
     return delay(time)
       .then(tryNext)
   }
@@ -62,17 +80,14 @@ async function Runner (rate, fn, input) {
   //
 
   function tryNext () {
-    // short circuit
-    if (R.isEmpty(source)) return Promise.resolve()
+    const timeAgo = () => Date.now() - interval
 
-    //
-    const now = Date.now()
-
-    const accRecent = Backlog.filterActiveSince(now - interval, acc)
-
-    return actionForBy(now, rate, accRecent)
-      .cata({ Run, Backoff })
+    return R.isEmpty(source)
+      ? Promise.resolve()
+      : actionBy(timeAgo()).cata({ Run, Backoff })
   }
+
+  //
 
   const ps = Array
     .from({ length: limit })

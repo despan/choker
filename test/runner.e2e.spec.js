@@ -5,7 +5,7 @@ import R from 'ramda'
 import delay from 'delay'
 import random from 'random-normal'
 
-import Debug from './helpers/debug'
+import Debug from 'debug'
 
 import { createServer } from '../vendor/server'
 import { sendTo, getServerHistoryFrom } from '../vendor/client'
