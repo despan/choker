@@ -1,4 +1,4 @@
-<img src="logo.png" align="right" height="48px"/>
+<img src="logo.png" align="right" height="60px"/>
 <img align="right" width="0" height="48px" hspace="10"/>
 
 # choker
