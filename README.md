@@ -69,3 +69,7 @@ npm run test:watch
 ### Contributing
 
 Check [Contributing Guide](/CONTRIBUTING.md).
+
+## Acknowledgements
+
+- Choker logo by Olena Panasovska from the Noun Project
