@@ -1,7 +1,7 @@
-<img src="logo.png" align="right" height="100px"/>
-<img align="right" width="0" height="100px" hspace="10"/>
+<img src="logo.png" align="right" height="48px"/>
+<img align="right" width="0" height="48px" hspace="10"/>
 
-# choker :construction:
+# choker
 
 [![Build Status](https://travis-ci.org/despan/suffocative.svg?branch=master)](https://travis-ci.org/despan/suffocative)
 [![Coverage Status](https://coveralls.io/repos/github/despan/suffocative/badge.svg?branch=master)](https://coveralls.io/github/despan/suffocative?branch=master)
