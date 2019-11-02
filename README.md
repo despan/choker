@@ -3,10 +3,11 @@
 
 # choker
 
-[![Build Status](https://travis-ci.org/despan/suffocative.svg?branch=master)](https://travis-ci.org/despan/suffocative)
-[![Coverage Status](https://coveralls.io/repos/github/despan/suffocative/badge.svg?branch=master)](https://coveralls.io/github/despan/suffocative?branch=master)
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
-[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)
+[![Build Status](https://travis-ci.org/despan/choker.svg?branch=master)](https://travis-ci.org/despan/choker)
+[![Coverage Status](https://coveralls.io/repos/github/despan/choker/badge.svg?branch=master)](https://coveralls.io/github/despan/choker?branch=master)
+[![Commit Style](https://img.shields.io/badge/commits-conventional-blue.svg)](https://conventionalcommits.org)
+[![Code Style](https://img.shields.io/badge/code%20style-standard-blue.svg)](http://standardjs.com)
+[![GitHub](https://img.shields.io/github/license/despan/choker)](/LICENSE)
 
 > throttle on limited rate
 
@@ -51,7 +52,7 @@ Choker(rate, sendSMS, smsList)
 git clone https://github.com/despan/choker
 
 #
-cd suffocative
+cd choker
 
 # install dependencies
 npm install
@@ -74,3 +75,7 @@ Check [Contributing Guide](/CONTRIBUTING.md).
 ## Acknowledgements
 
 - Choker logo by Olena Panasovska from the Noun Project
+
+## License
+
+The MIT License
