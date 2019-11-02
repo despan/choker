@@ -13,6 +13,33 @@
 ### Installation
 
 ```sh
+npm install suffocative
+```
+
+### Usage
+
+```js
+const Runner = require('suffocative')
+
+const rate = {
+  limit: 20,
+  interval: 1000 // ms
+}
+
+function sendSMS (data) {
+  // ...
+}
+
+const smsList = [
+  // ...
+]
+
+await Runner(rate, sendSMS, smsList)
+```
+
+### Development
+
+```sh
 # clone repo
 git clone https://github.com/despan/suffocative
 
