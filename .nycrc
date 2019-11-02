@@ -1,3 +1,7 @@
 {
-  "exclude": ["vendor"]
+  "exclude": [
+    "vendor",
+    "test",
+    "ava.config.js"
+  ]
 }
