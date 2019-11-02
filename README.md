@@ -19,7 +19,7 @@ npm install choker
 ### Usage
 
 ```js
-const Runner = require('suffocative')
+const Choker = require('choker')
 
 const rate = {
   limit: 20,
@@ -31,11 +31,12 @@ async function sendSMS (data) {
 }
 
 const smsList = [
-  { to: 777888, msg: 'hi' }
+  { to: 777888, msg: 'hi' },
   // ...
 ]
 
-await Runner(rate, sendSMS, smsList)
+Choker(rate, sendSMS, smsList)
+  .then(console.log)
 
 // [
 //   [ data, { time, result } ],
