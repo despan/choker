@@ -5,23 +5,9 @@ const R = require('ramda')
 //
 
 const Request = Daggy.taggedSum('Request', {
-  Pending: ['key'],
-  Ended: ['key', 'time', 'result']
+  Pending: [],
+  Ended: ['time', 'result']
 })
-
-/**
- *
- *
- */
-
-function keyOf (req) {
-  const cases = {
-    Pending: key => key,
-    Ended: key => key
-  }
-
-  return req.cata(cases)
-}
 
 /**
  *
@@ -34,9 +20,7 @@ function timeOf (req) {
 
   const cases = {
     Pending: throwNoTime,
-    Ended (_, time) {
-      return time
-    }
+    Ended: time => time
   }
 
   return req.cata(cases)
@@ -49,7 +33,7 @@ function timeOf (req) {
 function isActiveSince (pointInTime, req) {
   const cases = {
     Pending: () => true,
-    Ended: (_, time) => time >= pointInTime
+    Ended: time => time >= pointInTime
   }
 
   return req.cata(cases)
@@ -59,7 +43,6 @@ function isActiveSince (pointInTime, req) {
 
 module.exports = Request
 
-module.exports.keyOf = keyOf
 module.exports.timeOf = timeOf
 
 module.exports.isActiveSince = R.curry(isActiveSince)

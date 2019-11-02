@@ -12,11 +12,11 @@ test('actionForBy', t => {
   t.is(typeof actionForBy, 'function')
 
   const data = {
-    1: Request.Pending(1),
-    2: Request.Ended(2, 2, 'ok'),
-    3: Request.Ended(3, 3, 'ok'),
-    4: Request.Ended(4, 4, 'ok'),
-    5: Request.Pending(5)
+    1: Request.Pending,
+    2: Request.Ended(2, 'ok'),
+    3: Request.Ended(3, 'ok'),
+    4: Request.Ended(4, 'ok'),
+    5: Request.Pending
   }
 
   const get = (now, limit, interval) =>

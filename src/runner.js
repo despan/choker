@@ -65,11 +65,11 @@ async function runner (fn, rate, input) {
         debug('Run for key %s', key)
 
         // TODO: use key-value store for `acc`
-        acc.put(key, Request.Pending(key))
+        acc.put(key, Request.Pending)
 
         return fn(key)
           .then(res => {
-            acc.put(key, Request.Ended(key, Date.now(), res))
+            acc.put(key, Request.Ended(Date.now(), res))
           })
           .catch(err => {
             debug('Error: %s', err.message)
