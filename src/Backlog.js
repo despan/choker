@@ -4,11 +4,11 @@ const { Record } = require('./types')
 
 class Backlog {
   constructor (data) {
-    this.data = data || {}
+    this.data = data || new Map()
   }
 
   get size () {
-    return R.keys(this.data).length
+    return this.data.size
   }
 
   entries () {
@@ -23,12 +23,12 @@ class Backlog {
     return values(this)
   }
 
-  get (key) {
-    return get(key, this)
+  get (item) {
+    return get(item, this)
   }
 
-  put (key, value) {
-    return put(key, value, this)
+  put (item, record) {
+    return put(item, record, this)
   }
 
   filter (pred) {
@@ -45,46 +45,46 @@ class Backlog {
  */
 
 function from (entries) {
-  const data = R.fromPairs(entries)
+  const data = new Map(entries)
   return new Backlog(data)
 }
 
 function empty () {
-  return new Backlog({})
+  return new Backlog()
 }
 
 /*
  *
  */
 
-function get (key, acc) {
-  return acc.data[key]
+function get (item, acc) {
+  return acc.data.get(item)
 }
 
-function put (key, value, acc) {
-  if (!Record.is(value)) {
+function put (item, record, acc) {
+  if (!Record.is(record)) {
     throw new RangeError('Value is not Record')
   }
 
-  acc.data[key] = value
+  acc.data.set(item, record)
   return acc
 }
 
-function putPending (key, acc) {
-  return put(key, Record.Pending, acc)
+function putPending (item, acc) {
+  return put(item, Record.Pending, acc)
 }
 
-function putPendingInto (acc, key) {
-  return putPending(key, acc)
+function putPendingInto (acc, item) {
+  return putPending(item, acc)
 }
 
-function putCompleteNowWith (key, result, acc) {
+function putCompleteNowWith (item, result, acc) {
   const record = Record.Complete(Date.now(), result)
-  return put(key, record, acc)
+  return put(item, record, acc)
 }
 
-function putCompleteNowWithInto (acc, key, result) {
-  return putCompleteNowWith(key, result, acc)
+function putCompleteNowWithInto (acc, item, result) {
+  return putCompleteNowWith(item, result, acc)
 }
 
 /**
@@ -98,10 +98,10 @@ function entries (acc) {
 
   const get = R.compose(
     R.sort(byTime),
-    R.toPairs
+    Array.from
   )
 
-  return get(acc.data)
+  return get(acc.data.entries())
 }
 
 function keys (acc) {
@@ -130,8 +130,8 @@ function filter (pred, acc) {
   const get = R.compose(
     from,
     R.filter(pair => {
-      const [key, value] = pair
-      return pred(value, key)
+      const [item, record] = pair
+      return pred(record, item)
     }),
     entries
   )

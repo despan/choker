@@ -44,13 +44,12 @@ async function runner (fn, rate, input) {
   //
 
   const Run = () => {
-    const key = source.shift()
-    debug('Run for key %s', key)
+    const item = source.shift()
 
-    putPending(key)
+    putPending(item)
 
-    return fn(key)
-      .then(putCompleteWith(key))
+    return fn(item)
+      .then(putCompleteWith(item))
       .then(tryNext)
   }
 
@@ -69,7 +68,7 @@ async function runner (fn, rate, input) {
     //
     const now = Date.now()
 
-    const accRecent = acc.filterActiveSince(now - interval)
+    const accRecent = Backlog.filterActiveSince(now - interval, acc)
 
     return actionForBy(now, rate, accRecent)
       .cata({ Run, Backoff })
@@ -81,7 +80,7 @@ async function runner (fn, rate, input) {
 
   return Promise
     .all(ps)
-    .then(() => Backlog.values(acc))
+    .then(() => Backlog.entries(acc))
 }
 
 // expose curried

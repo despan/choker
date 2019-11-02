@@ -13,6 +13,8 @@ const DATA = {
   d: Record.Pending
 }
 
+const ENTRIES = Object.entries(DATA)
+
 test('empty', t => {
   const acc = Backlog.empty()
 
@@ -21,7 +23,7 @@ test('empty', t => {
 })
 
 test('from', t => {
-  const acc = Backlog.from(Object.entries(DATA))
+  const acc = Backlog.from(ENTRIES)
 
   t.true(acc instanceof Backlog)
   t.is(acc.size, 4)
@@ -30,7 +32,7 @@ test('from', t => {
 //
 
 test('entries', t => {
-  const acc = new Backlog(DATA)
+  const acc = Backlog.from(ENTRIES)
 
   t.deepEqual(
     acc.entries().map(R.head),
@@ -39,7 +41,7 @@ test('entries', t => {
 })
 
 test('keys', t => {
-  const acc = new Backlog(DATA)
+  const acc = Backlog.from(ENTRIES)
 
   t.deepEqual(
     acc.keys(),
@@ -48,7 +50,7 @@ test('keys', t => {
 })
 
 test('values', t => {
-  const acc = new Backlog(DATA)
+  const acc = Backlog.from(ENTRIES)
 
   t.deepEqual(
     acc.values(),
@@ -72,7 +74,7 @@ test('get', t => {
 })
 
 test('filter', t => {
-  const acc = new Backlog(DATA)
+  const acc = Backlog.from(ENTRIES)
 
   const keysOf = pred => {
     return acc
@@ -85,7 +87,7 @@ test('filter', t => {
 })
 
 test('filterActiveSince', t => {
-  const acc = new Backlog(DATA)
+  const acc = Backlog.from(ENTRIES)
 
   const keysOf = t => {
     return acc

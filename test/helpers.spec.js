@@ -11,16 +11,18 @@ import { actionForBy } from '../src/helpers'
 test('actionForBy', t => {
   t.is(typeof actionForBy, 'function')
 
-  const data = {
+  const entries = Object.entries({
     a: Record.Pending,
     b: Record.Complete(2, 'ok'),
     c: Record.Complete(3, 'ok'),
     d: Record.Complete(4, 'ok'),
     e: Record.Pending
-  }
+  })
 
-  const get = (now, limit, interval) =>
-    actionForBy(now, { limit, interval }, new Backlog(data))
+  const acc = Backlog.from(entries)
+
+  const get = (time, limit, interval) =>
+    actionForBy(time, { limit, interval }, acc)
 
   t.is(get(6, 6, 3), Action.Run, 'available')
 
