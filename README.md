@@ -52,7 +52,7 @@ Choker(rate, sendSMS, smsList)
 git clone https://github.com/despan/choker
 
 #
-cd suffocative
+cd choker
 
 # install dependencies
 npm install
@@ -75,3 +75,7 @@ Check [Contributing Guide](/CONTRIBUTING.md).
 ## Acknowledgements
 
 - Choker logo by Olena Panasovska from the Noun Project
+
+## License
+
+The MIT License
