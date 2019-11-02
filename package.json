@@ -3,7 +3,9 @@
     "lint": "eslint --fix --ignore-path .gitignore ./**/*.js",
     "lint:staged": "lint-staged",
     "test": "ava",
-    "test:watch": "ava -vw"
+    "test:coverage": "nyc ava -v",
+    "test:watch": "ava -vw",
+    "report-coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
     "type": "git",
@@ -19,6 +21,7 @@
     "@commitlint/cli": "^8.2.0",
     "@commitlint/config-conventional": "^8.2.0",
     "ava": "^2.4.0",
+    "coveralls": "^3.0.7",
     "eslint": "^6.6.0",
     "eslint-config-standard": "^14.1.0",
     "eslint-plugin-import": "^2.18.2",
@@ -32,6 +35,7 @@
     "koa-router": "^7.4.0",
     "lint-staged": "^9.4.2",
     "node-fetch": "^2.6.0",
+    "nyc": "^14.1.1",
     "pretty-hrtime": "^1.0.3",
     "random-normal": "^1.0.0"
   },
