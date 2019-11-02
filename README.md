@@ -1,7 +1,7 @@
 <img src="logo.png" align="right" height="100px"/>
 <img align="right" width="0" height="100px" hspace="10"/>
 
-# suffocative :construction:
+# choker :construction:
 
 [![Build Status](https://travis-ci.org/despan/suffocative.svg?branch=master)](https://travis-ci.org/despan/suffocative)
 [![Coverage Status](https://coveralls.io/repos/github/despan/suffocative/badge.svg?branch=master)](https://coveralls.io/github/despan/suffocative?branch=master)
@@ -13,7 +13,7 @@
 ### Installation
 
 ```sh
-npm install suffocative
+npm install choker
 ```
 
 ### Usage
@@ -47,7 +47,7 @@ await Runner(rate, sendSMS, smsList)
 
 ```sh
 # clone repo
-git clone https://github.com/despan/suffocative
+git clone https://github.com/despan/choker
 
 #
 cd suffocative

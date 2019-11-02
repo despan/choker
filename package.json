@@ -1,5 +1,5 @@
 {
-  "name": "suffocative",
+  "name": "choker",
   "version": "0.0.0",
   "description": "Rate limiter, async",
   "keywords": [
@@ -21,14 +21,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/despan/suffocative.git"
+    "url": "https://github.com/despan/choker.git"
   },
   "author": "Mushegh Antaranyan",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/despan/suffocative/issues"
+    "url": "https://github.com/despan/choker/issues"
   },
-  "homepage": "https://github.com/despan/suffocative#readme",
+  "homepage": "https://github.com/despan/choker#readme",
   "devDependencies": {
     "@commitlint/cli": "^8.2.0",
     "@commitlint/config-conventional": "^8.2.0",
