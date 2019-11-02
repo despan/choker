@@ -1,7 +1,7 @@
-<img src="logo.png" align="right" height="100px"/>
-<img align="right" width="0" height="100px" hspace="10"/>
+<img src="logo.png" align="right" height="60px"/>
+<img align="right" width="0" height="48px" hspace="10"/>
 
-# suffocative :construction:
+# choker
 
 [![Build Status](https://travis-ci.org/despan/suffocative.svg?branch=master)](https://travis-ci.org/despan/suffocative)
 [![Coverage Status](https://coveralls.io/repos/github/despan/suffocative/badge.svg?branch=master)](https://coveralls.io/github/despan/suffocative?branch=master)
@@ -13,13 +13,13 @@
 ### Installation
 
 ```sh
-npm install suffocative
+npm install choker
 ```
 
 ### Usage
 
 ```js
-const Runner = require('suffocative')
+const Choker = require('choker')
 
 const rate = {
   limit: 20,
@@ -31,11 +31,12 @@ async function sendSMS (data) {
 }
 
 const smsList = [
-  { to: 777888, msg: 'hi' }
+  { to: 777888, msg: 'hi' },
   // ...
 ]
 
-await Runner(rate, sendSMS, smsList)
+Choker(rate, sendSMS, smsList)
+  .then(console.log)
 
 // [
 //   [ data, { time, result } ],
@@ -47,7 +48,7 @@ await Runner(rate, sendSMS, smsList)
 
 ```sh
 # clone repo
-git clone https://github.com/despan/suffocative
+git clone https://github.com/despan/choker
 
 #
 cd suffocative
@@ -69,3 +70,7 @@ npm run test:watch
 ### Contributing
 
 Check [Contributing Guide](/CONTRIBUTING.md).
+
+## Acknowledgements
+
+- Choker logo by Olena Panasovska from the Noun Project
