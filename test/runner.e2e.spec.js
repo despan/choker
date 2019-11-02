@@ -5,12 +5,12 @@ import R from 'ramda'
 import delay from 'delay'
 import random from 'random-normal'
 
-import Debug from './helpers/debug'
+import Debug from 'debug'
 
 import { createServer } from '../vendor/server'
 import { sendTo, getServerHistoryFrom } from '../vendor/client'
 
-import runner from '../src/runner'
+import Runner from '../src/Runner'
 
 // debug
 
@@ -55,16 +55,16 @@ test.serial('results', async t => {
 
   const numbers = numbersTo(25)
 
-  const res = await runner(sendTo(baseUrl), RATE, numbers)
+  const res = await Runner(RATE, sendTo(baseUrl), numbers)
 
-  t.deepEqual(R.pluck('key', res), numbers)
+  t.deepEqual(res.length, 25)
 })
 
 test.serial('stats', async t => {
   const { baseUrl } = t.context
 
   const numbers = numbersTo(50)
-  const res = await runner(sendTo(baseUrl), RATE, numbers)
+  const res = await Runner(RATE, sendTo(baseUrl), numbers)
 
   // acquire stats
   const history = await getServerHistoryFrom(baseUrl)
@@ -83,23 +83,6 @@ test.serial('stats', async t => {
 
   debug('Aggregated results: %O', aggregate(res))
   debug('Aggregated server stats: %O', aggregate(history))
-})
-
-test.serial('perf', async t => {
-  const { baseUrl } = t.context
-
-  const total = 50
-
-  debug('Run for rate %O total %d', RATE, total)
-  debug('  ideally should take %d s', total / RATE.limit * RATE.interval)
-  const startOk = process.hrtime()
-
-  await runner(sendTo(baseUrl), RATE, numbersTo(total))
-
-  const endOk = process.hrtime(startOk)
-  debug('  took %h', endOk)
-
-  t.pass()
 })
 
 test.serial('limits', async t => {
@@ -122,7 +105,7 @@ test.serial('limits', async t => {
       interval: RATE.interval
     }
 
-    return runner(send, rate, numbersTo(50))
+    return Runner(rate, send, numbersTo(50))
   }
 
   const { limit, interval } = RATE
