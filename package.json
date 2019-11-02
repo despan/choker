@@ -1,6 +1,6 @@
 {
   "name": "suffocative",
-  "version": "0.0.0",
+  "version": "0.0.0-development",
   "description": "Rate limiter",
   "tags": [
     "throttle",
@@ -13,11 +13,12 @@
     "test": "ava",
     "test:coverage": "nyc ava -v",
     "test:watch": "ava -vw",
-    "report-coverage": "nyc report --reporter=text-lcov | coveralls"
+    "report-coverage": "nyc report --reporter=text-lcov | coveralls",
+    "semantic-release": "semantic-release"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/despan/suffocative.git"
+    "url": "https://github.com/despan/suffocative.git"
   },
   "author": "Mushegh Antaranyan",
   "license": "MIT",
@@ -45,7 +46,8 @@
     "node-fetch": "^2.6.0",
     "nyc": "^14.1.1",
     "pretty-hrtime": "^1.0.3",
-    "random-normal": "^1.0.0"
+    "random-normal": "^1.0.0",
+    "semantic-release": "^15.13.29"
   },
   "dependencies": {
     "daggy": "^1.4.0",
