@@ -26,15 +26,21 @@ const rate = {
   interval: 1000 // ms
 }
 
-function sendSMS (data) {
+async function sendSMS (data) {
   // ...
 }
 
 const smsList = [
+  { to: 777888, msg: 'hi' }
   // ...
 ]
 
 await Runner(rate, sendSMS, smsList)
+
+// [
+//   [ data, { time, result } ],
+//   ...
+// ]
 ```
 
 ### Development
