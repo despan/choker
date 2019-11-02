@@ -21,10 +21,10 @@ test('Backoff', t => {
   t.throws(() => Backoff(1, 2), 'Expected 1 arguments, got 2')
 })
 
-test('Send', t => {
-  const { Send } = Action
+test('Run', t => {
+  const { Run } = Action
 
   // instance of
-  t.true(Action.is(Send))
-  t.true(Send.is(Send))
+  t.true(Action.is(Run))
+  t.true(Run.is(Run))
 })

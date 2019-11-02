@@ -1,11 +1,23 @@
 const R = require('ramda')
 
-const { Action, Request } = require('./types')
+const Backlog = require('./Backlog')
+
+const { Action, Record } = require('./types')
+
+/*
+ * Helpers
+ */
+
+const earliestTimeFrom = R.compose(
+  Record.timeOf,
+  R.head,
+  Backlog.values
+)
 
 /**
  * Get relevant action based on params and situation
  *
- * @param {Date} now
+ * @param {Date} time
  * @param {Object} rate
  * @param {number} rate.limit
  * @param {number} rate.interval
@@ -14,26 +26,18 @@ const { Action, Request } = require('./types')
  * @returns {Action}
  */
 
-function actionForBy (now, rate, backlog) {
+function actionForBy (time, rate, backlog) {
   const { limit, interval } = rate
 
-  // has available
-  if (backlog.size < limit) return Action.Send // short circuit
+  // has available, short circuit
+  if (backlog.size < limit) return Action.Run
 
   // estimate backoff time
-
-  const endedRequests = backlog.filter(Request.Ended.is)
-
-  const timesEnded = endedRequests
-    .values()
-    .map(Request.timeOf)
-
-  const timePassedMax = now - Math.min(...timesEnded)
-  const timeout = interval - timePassedMax
+  const timeout = earliestTimeFrom(backlog) + interval - time
 
   return timeout > 0
     ? Action.Backoff(timeout)
-    : Action.Send
+    : Action.Run
 }
 
 // expose curried
