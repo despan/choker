@@ -35,7 +35,8 @@ const earliestTimeFrom = R.compose(
  */
 
 async function Runner (rate, fn, input) {
-  const { limit, interval } = rate
+  const limit = rate.limit
+  const interval = rate.interval
 
   //
   const source = input.slice(0) // clone
@@ -75,7 +76,7 @@ async function Runner (rate, fn, input) {
 
     debug('> Run after %d ms', timeout)
 
-    return timeout > 0
+    return timeout >= 0
       ? Action.Backoff(timeout)
       : Action.Run
   }
@@ -87,7 +88,9 @@ async function Runner (rate, fn, input) {
 
     putPending(item)
 
-    return fn(item)
+    return Promise
+      .resolve(item)
+      .then(fn)
       .then(putCompleteWith(item))
       .then(tryNext)
   }
@@ -100,19 +103,22 @@ async function Runner (rate, fn, input) {
   //
 
   function tryNext () {
-    debug('-- Next Iteration --')
+    if (R.isEmpty(source)) {
+      return Promise.resolve()
+    }
+
     const now = Date.now()
 
-    return R.isEmpty(source)
-      ? Promise.resolve()
-      : actionBy(now).cata({ Run, Backoff })
+    return actionBy(now)
+      .cata({ Run, Backoff })
   }
 
   //
 
   const ps = []
 
-  for (let i; i < limit; i++) {
+  let x = 0
+  while (x++ < limit) {
     ps.push(tryNext())
   }
 
