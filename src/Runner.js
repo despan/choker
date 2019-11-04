@@ -2,6 +2,8 @@ const R = require('ramda')
 
 const delay = require('delay')
 
+const debug = require('debug')('choker:runner')
+
 const Backlog = require('./Backlog')
 
 const { Action, Record } = require('./types')
@@ -46,16 +48,34 @@ async function Runner (rate, fn, input) {
 
   //
 
-  function actionBy (time) {
+  function actionBy (now) {
+    debug('Calculate proper action for %d', now)
+
+    const time = now - interval
+
+    debug('Take recent history since %d', time)
+
+    debug('  from %O', Backlog.values(acc))
+
     const accRecent = Backlog.filterActiveSince(time, acc)
 
+    debug('(%d entries resolved)', accRecent.size)
+
     // has available, short circuit
-    if (accRecent.size < limit) return Action.Run
+    if (accRecent.size < limit) {
+      debug('> Run')
+      return Action.Run
+    }
 
     // estimate backoff time
-    const timeout = earliestTimeFrom(accRecent) - time
+    const timePassed = now - earliestTimeFrom(accRecent)
+    debug('Earliest resolved %d ms ago', timePassed)
 
-    return timeout > 0
+    const timeout = interval - timePassed
+
+    debug('> Run after %d ms', timeout)
+
+    return timeout >= 0
       ? Action.Backoff(timeout)
       : Action.Run
   }
@@ -67,7 +87,9 @@ async function Runner (rate, fn, input) {
 
     putPending(item)
 
-    return fn(item)
+    return Promise
+      .resolve(item)
+      .then(fn)
       .then(putCompleteWith(item))
       .then(tryNext)
   }
@@ -80,11 +102,14 @@ async function Runner (rate, fn, input) {
   //
 
   function tryNext () {
-    const timeAgo = () => Date.now() - interval
+    if (R.isEmpty(source)) {
+      return Promise.resolve()
+    }
 
-    return R.isEmpty(source)
-      ? Promise.resolve()
-      : actionBy(timeAgo()).cata({ Run, Backoff })
+    const now = Date.now()
+
+    return actionBy(now)
+      .cata({ Run, Backoff })
   }
 
   //

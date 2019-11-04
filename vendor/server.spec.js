@@ -4,8 +4,8 @@ import createError from 'http-errors'
 
 import R from 'ramda'
 
-import { sendTo, getServerHistoryFrom } from '../vendor/client'
-import { createServer } from '../vendor/server'
+import { sendTo } from '../vendor/client'
+import { runServer } from '../vendor/server'
 
 /*
  * Settings
@@ -30,11 +30,12 @@ const sendMultiTo = (baseUrl, limit) => {
 
 // setup
 test.beforeEach(async t => {
-  // supply for later usage
-  t.context = await createServer({
+  const rate = {
     limit: LIMIT,
     interval: INTERVAL
-  })
+  }
+
+  t.context = await runServer(rate)
 })
 
 // tear down
@@ -45,27 +46,6 @@ test.afterEach(async t => {
 /*
  * Tests
  */
-
-test.serial('stats on requests', async t => {
-  const { baseUrl } = t.context
-
-  const limit = 9
-
-  await getServerHistoryFrom(baseUrl)
-    .then(body => {
-      t.deepEqual(body, [], 'ok initial stats')
-    })
-
-  // activity
-  await sendMultiTo(baseUrl, limit)
-
-  await getServerHistoryFrom(baseUrl)
-    .then(R.pluck('key'))
-    .then(stats => {
-      const expected = R.range(1, limit).map(String)
-      t.deepEqual(stats.sort(), expected, 'ok final stats')
-    })
-})
 
 test.serial('rate limiter', async t => {
   const { baseUrl } = t.context

@@ -29,20 +29,6 @@ const sendTo = (baseUrl, key) => {
     .then(() => key)
 }
 
-/**
- * Get access log
- *
- * @returns {Promise}
- */
-
-const getServerHistoryFrom = baseUrl => {
-  const url = `${baseUrl}/history`
-
-  return fetch(url)
-    .then(res => res.json())
-}
-
 // expose curried commands
 
 module.exports.sendTo = R.curry(sendTo)
-module.exports.getServerHistoryFrom = getServerHistoryFrom
