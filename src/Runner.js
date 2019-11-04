@@ -35,8 +35,7 @@ const earliestTimeFrom = R.compose(
  */
 
 async function Runner (rate, fn, input) {
-  const limit = rate.limit
-  const interval = rate.interval
+  const { limit, interval } = rate
 
   //
   const source = input.slice(0) // clone
@@ -115,12 +114,9 @@ async function Runner (rate, fn, input) {
 
   //
 
-  const ps = []
-
-  let x = 0
-  while (x++ < limit) {
-    ps.push(tryNext())
-  }
+  const ps = Array
+    .from({ length: limit })
+    .map(tryNext)
 
   return Promise
     .all(ps)
