@@ -5,16 +5,10 @@ import R from 'ramda'
 import delay from 'delay'
 import random from 'random-normal'
 
-import Debug from 'debug'
+import { runServer } from './server'
+import { sendTo } from './client'
 
-import { createServer } from '../vendor/server'
-import { sendTo, getServerHistoryFrom } from '../vendor/client'
-
-import Runner from '../src/Runner'
-
-// debug
-
-const debug = Debug('sfc:runner:test')
+import choker from '..'
 
 /*
  * Settings
@@ -38,7 +32,7 @@ const numbersTo = max => R.range(1, max + 1)
 // setup
 test.beforeEach(async t => {
   // run a test server on available port
-  t.context = await createServer(RATE) // { baseUrl, server }
+  t.context = await runServer(RATE) // { baseUrl, server }
 })
 
 // tear down
@@ -49,41 +43,6 @@ test.afterEach(async t => {
 /*
  * Tests
  */
-
-test.serial('results', async t => {
-  const { baseUrl } = t.context
-
-  const numbers = numbersTo(25)
-
-  const res = await Runner(RATE, sendTo(baseUrl), numbers)
-
-  t.deepEqual(res.length, 25)
-})
-
-test.serial('stats', async t => {
-  const { baseUrl } = t.context
-
-  const numbers = numbersTo(50)
-  const res = await Runner(RATE, sendTo(baseUrl), numbers)
-
-  // acquire stats
-  const history = await getServerHistoryFrom(baseUrl)
-
-  t.is(history.length, 50, 'no missing hits')
-
-  // segment by seconds
-  const byTime = row => Math.floor(row.time / 1000)
-  // stat spec to list of keys
-  const keys = R.pluck('key')
-
-  const aggregate = R.compose(
-    R.map(keys),
-    R.groupBy(byTime)
-  )
-
-  debug('Aggregated results: %O', aggregate(res))
-  debug('Aggregated server stats: %O', aggregate(history))
-})
 
 test.serial('limits', async t => {
   const { baseUrl } = t.context
@@ -105,7 +64,7 @@ test.serial('limits', async t => {
       interval: RATE.interval
     }
 
-    return Runner(rate, send, numbersTo(50))
+    return choker(rate, send, numbersTo(50))
   }
 
   const { limit, interval } = RATE
