@@ -11,4 +11,14 @@ const Action = Daggy.taggedSum('Action', {
 
 //
 
+function fromTimeout (t) {
+  return t >= 0
+    ? Action.Backoff(t)
+    : Action.Run
+}
+
+//
+
 module.exports = Action
+
+module.exports.fromTimeout = fromTimeout

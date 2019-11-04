@@ -35,22 +35,3 @@ test('signature (curried)', t => {
   t.is(typeof choker(RATE, FN), 'function', '2 of 3')
   t.is(typeof choker(RATE, FN)(ITEMS), 'object', '2 + 1 of 3')
 })
-
-test('results', async t => {
-  const res = await choker(RATE, FN, ITEMS)
-
-  t.true(Array.isArray(res))
-  t.is(res.length, ITEMS.length)
-
-  res.forEach(async row => {
-    t.true(Array.isArray(row), 'each row is pair')
-    t.is(row.length, 2, 'each row is pair')
-
-    const [item, { time, result }] = row
-
-    t.true(ITEMS.includes(item))
-
-    t.not(time, undefined)
-    t.deepEqual(result, await FN(item))
-  })
-})

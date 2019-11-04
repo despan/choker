@@ -34,11 +34,11 @@ const earliestTimeFrom = R.compose(
  * @return {Promise}
  */
 
-async function Runner (rate, fn, input) {
+async function Runner (rate, fn, items) {
   const { limit, interval } = rate
 
   //
-  const source = input.slice(0) // clone
+  const source = items.slice(0) // clone
 
   // results accumulator
   const acc = Backlog.empty()
@@ -71,13 +71,7 @@ async function Runner (rate, fn, input) {
     const timePassed = now - earliestTimeFrom(accRecent)
     debug('Earliest resolved %d ms ago', timePassed)
 
-    const timeout = interval - timePassed
-
-    debug('> Run after %d ms', timeout)
-
-    return timeout >= 0
-      ? Action.Backoff(timeout)
-      : Action.Run
+    return Action.fromTimeout(interval - timePassed)
   }
 
   //
@@ -118,9 +112,18 @@ async function Runner (rate, fn, input) {
     .from({ length: limit })
     .map(tryNext)
 
+  const dumpResults = () => {
+    const getter = item => {
+      const { result } = Backlog.get(item, acc)
+      return result
+    }
+
+    return items.map(getter)
+  }
+
   return Promise
     .all(ps)
-    .then(() => Backlog.entries(acc))
+    .then(dumpResults)
 }
 
 // expose curried

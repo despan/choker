@@ -5,6 +5,7 @@
 
 [![Build Status](https://travis-ci.org/despan/choker.svg?branch=master)](https://travis-ci.org/despan/choker)
 [![Coverage Status](https://coveralls.io/repos/github/despan/choker/badge.svg?branch=master)](https://coveralls.io/github/despan/choker?branch=master)
+[![Published Version](https://img.shields.io/npm/v/choker)](https://www.npmjs.com/package/choker)
 [![Commit Style](https://img.shields.io/badge/commits-conventional-blue.svg)](https://conventionalcommits.org)
 [![Code Style](https://img.shields.io/badge/code%20style-standard-blue.svg)](http://standardjs.com)
 [![GitHub](https://img.shields.io/github/license/despan/choker)](/LICENSE)
@@ -20,7 +21,7 @@ npm install choker
 ### Usage
 
 ```js
-const Choker = require('choker')
+const choker = require('choker')
 
 const rate = {
   limit: 20,
@@ -28,7 +29,8 @@ const rate = {
 }
 
 async function sendSMS (data) {
-  // ...
+  // perform request...
+  return `Sent to ${data.to}`
 }
 
 const smsList = [
@@ -36,11 +38,11 @@ const smsList = [
   // ...
 ]
 
-Choker(rate, sendSMS, smsList)
+choker(rate, sendSMS, smsList)
   .then(console.log)
 
 // [
-//   [ data, { time, result } ],
+//   'Sent to 777888',
 //   ...
 // ]
 ```

@@ -16,8 +16,7 @@ async function main (t, rate, fn, items) {
   t.is(res.length, items.length, 'corresponding size')
 
   for (let i = 0; i < res.length; i++) {
-    const [item, { result }] = res[i]
-    t.deepEqual(result, await fn(item), 'match each result')
+    t.deepEqual(res[i], await fn(items[i]), 'match each result')
   }
 }
 
