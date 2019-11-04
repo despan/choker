@@ -8,7 +8,7 @@
     "rate-limiter",
     "throttle"
   ],
-  "main": "src/Runner.js",
+  "main": "index.js",
   "scripts": {
     "lint": "eslint --fix --ignore-path .gitignore ./**/*.js",
     "lint:staged": "lint-staged",
