@@ -20,7 +20,7 @@ npm install choker
 ### Usage
 
 ```js
-const Choker = require('choker')
+const choker = require('choker')
 
 const rate = {
   limit: 20,
@@ -28,7 +28,8 @@ const rate = {
 }
 
 async function sendSMS (data) {
-  // ...
+  // perform request...
+  return `Sent to ${data.to}`
 }
 
 const smsList = [
@@ -36,11 +37,11 @@ const smsList = [
   // ...
 ]
 
-Choker(rate, sendSMS, smsList)
+choker(rate, sendSMS, smsList)
   .then(console.log)
 
 // [
-//   [ data, { time, result } ],
+//   'Sent to 777888',
 //   ...
 // ]
 ```
