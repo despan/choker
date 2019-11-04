@@ -71,13 +71,7 @@ async function Runner (rate, fn, input) {
     const timePassed = now - earliestTimeFrom(accRecent)
     debug('Earliest resolved %d ms ago', timePassed)
 
-    const timeout = interval - timePassed
-
-    debug('> Run after %d ms', timeout)
-
-    return timeout >= 0
-      ? Action.Backoff(timeout)
-      : Action.Run
+    return Action.fromTimeout(interval - timePassed)
   }
 
   //
