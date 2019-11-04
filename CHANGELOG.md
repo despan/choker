@@ -1,3 +1,12 @@
+# 0.2.0 (2019-11-04)
+
+
+### Fixes
+
+* return only results (in correct order) ([46be7ed](https://github.com/despan/choker/commit/46be7ed6365f3da04cbcd03b28f04db114afdbe4))
+
+
+
 ## 0.1.1 (2019-11-04)
 
 
