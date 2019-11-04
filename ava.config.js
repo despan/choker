@@ -3,7 +3,8 @@ export default {
     'test/**/*.spec.js'
   ],
   helpers: [
-    'test/helpers/**/*'
+    'test/helpers/**/*',
+    'test/macros/**/*'
   ],
   sources: [
     'index.js',
