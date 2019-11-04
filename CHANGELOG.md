@@ -1,3 +1,12 @@
+## 0.1.1 (2019-11-04)
+
+
+### Bug Fixes
+
+* respect `Backoff(0)` case to pass test suite ([a2e2c0a](https://github.com/despan/choker/commit/a2e2c0aa9655967cc88f2e2738cf406078745576))
+
+
+
 # 0.1.0 (2019-11-02)
 
 
